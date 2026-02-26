@@ -1,0 +1,5 @@
+apiVersion: v2
+name: kubeflow
+description: Kubeflow is an open, community driven project to make it easy to deploy and manage an ML stack on Kubernetes
+version: 1.0.0
+appVersion: "1.0"

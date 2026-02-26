@@ -1,0 +1,20 @@
+{
+  "certManager.enabled": true,
+  "certManagerKubeflowIssuer.enabled": true,
+  "istioBase.enabled": true,
+  "istioInstall.enabled": true,
+  "istioResources.enabled": true,
+  "dex.enabled": true,
+  "oauth2Proxy.enabled": true,
+  "kubeflowRoles.enabled": true,
+  "networkPolicies.enabled": true,
+  "centralDashboard.enabled": true,
+  "admissionWebhook.enabled": true,
+  "notebookController.enabled": true,
+  "jupyterWebApp.enabled": true,
+  "pvcViewerController.enabled": true,
+  "volumesWebApp.enabled": true,
+  "profiles.enabled": true,
+  "kubeflowPipelines.enabled": true,
+  "exampleProfile.enabled": true
+}
