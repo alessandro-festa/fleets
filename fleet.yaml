@@ -1,3 +1,0 @@
-defaultNamespace: suse-ai
-helm:
-  releaseName: kubeflow
