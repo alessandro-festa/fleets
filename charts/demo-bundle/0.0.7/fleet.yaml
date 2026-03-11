@@ -1,0 +1,7 @@
+defaultNamespace: demo-bundle
+helm:
+  releaseName: demo-bundle
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
