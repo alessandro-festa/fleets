@@ -9,3 +9,6 @@ global:
 argo-workflows:
   enabled: true
 
+ollama:
+  enabled: true
+

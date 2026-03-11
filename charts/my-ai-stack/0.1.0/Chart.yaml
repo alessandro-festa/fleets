@@ -15,4 +15,8 @@ dependencies:
     version: latest
     repository: oci://dp.apps.rancher.io/charts/argo-workflows
     condition: argo-workflows.enabled
+  - name: ollama
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/ollama
+    condition: ollama.enabled
 
