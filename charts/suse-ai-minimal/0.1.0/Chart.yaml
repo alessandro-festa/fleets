@@ -11,26 +11,14 @@ keywords:
   - suse-ai-factory
 
 dependencies:
-  - name: suse-ai-minimal
-    version: 1.2.0
-    repository: oci://https://github.com/alessandro-festa/rd-nv-suseai/charts/suse-ai-minimal
-    condition: suse-ai-minimal.enabled
   - name: milvus
     version: latest
     repository: oci://dp.apps.rancher.io/charts/milvus
     condition: milvus.enabled
-  - name: ollama
-    version: latest
-    repository: oci://dp.apps.rancher.io/charts/ollama
-    condition: ollama.enabled
   - name: open-webui
     version: latest
     repository: oci://dp.apps.rancher.io/charts/open-webui
     condition: open-webui.enabled
-  - name: pytorch
-    version: latest
-    repository: oci://dp.apps.rancher.io/charts/pytorch
-    condition: pytorch.enabled
   - name: vllm
     version: latest
     repository: oci://dp.apps.rancher.io/charts/vllm
@@ -39,4 +27,12 @@ dependencies:
     version: latest
     repository: oci://dp.apps.rancher.io/charts/open-webui-mcpo
     condition: open-webui-mcpo.enabled
+  - name: suse-ai-minimal
+    version: 1.2.0
+    repository: oci://dp.apps.rancher.io/charts/suse-ai-minimal
+    condition: suse-ai-minimal.enabled
+  - name: open-webui-pipelines
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/open-webui-pipelines
+    condition: open-webui-pipelines.enabled
 
