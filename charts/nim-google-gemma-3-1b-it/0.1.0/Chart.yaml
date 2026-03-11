@@ -11,8 +11,20 @@ keywords:
   - suse-ai-factory
 
 dependencies:
-  - name: gemma-3-1b-it
-    version: 1.15.5
-    repository: https://helm.ngc.nvidia.com/nim/charts/nim-llm-1.15.5.tgz
-    condition: gemma-3-1b-it.enabled
+  - name: argo-workflows
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/argo-workflows
+    condition: argo-workflows.enabled
+  - name: pytorch
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/pytorch
+    condition: pytorch.enabled
+  - name: google/gemma-3-1b-it
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/google/gemma-3-1b-it
+    condition: google/gemma-3-1b-it.enabled
+  - name: opentelemetry-collector
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/opentelemetry-collector
+    condition: opentelemetry-collector.enabled
 
