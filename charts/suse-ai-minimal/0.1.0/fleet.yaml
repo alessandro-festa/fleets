@@ -1,7 +1,0 @@
-defaultNamespace: suse-ai
-helm:
-  releaseName: suse-ai-minimal
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true

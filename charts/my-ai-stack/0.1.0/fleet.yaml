@@ -1,7 +1,0 @@
-defaultNamespace: suse-ai
-helm:
-  releaseName: my-ai-stack
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
