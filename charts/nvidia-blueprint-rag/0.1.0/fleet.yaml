@@ -1,0 +1,7 @@
+defaultNamespace: suse-ai
+helm:
+  releaseName: nvidia-blueprint-rag
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
