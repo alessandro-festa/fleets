@@ -1,0 +1,402 @@
+global:
+  imagePullSecrets:
+    - application-collection
+  namespace: ''
+ollama:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  replicaCount: 1
+  knative:
+    enabled: false
+    containerConcurrency: 0
+    timeoutSeconds: 300
+    responseStartTimeoutSeconds: 300
+    idleTimeoutSeconds: 300
+    annotations: {}
+  image:
+    repository: containers/ollama
+    pullPolicy: IfNotPresent
+    tag: 0.12.9-11.15
+    registry: dp.apps.rancher.io
+  imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  namespaceOverride: ''
+  ollama:
+    port: 11434
+    gpu:
+      enabled: false
+      draEnabled: false
+      draDriverClass: gpu.nvidia.com
+      draExistingClaimTemplate: ''
+      type: nvidia
+      number: 1
+      nvidiaResource: nvidia.com/gpu
+      mig:
+        enabled: false
+        devices: {}
+    models:
+      pull: []
+      run: []
+      create: []
+      clean: false
+    insecure: false
+    mountPath: ''
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ''
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  priorityClassName: ''
+  securityContext: {}
+  runtimeClassName: ''
+  service:
+    type: ClusterIP
+    port: 11434
+    nodePort: 31434
+    loadBalancerIP: null
+    annotations: {}
+    labels: {}
+  deployment:
+    labels: {}
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: ollama.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  resources:
+    requests: {}
+    limits: {}
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 6
+    successThreshold: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  volumes: []
+  volumeMounts: []
+  extraArgs: []
+  extraEnv: []
+  extraEnvFrom: []
+  persistentVolume:
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    annotations: {}
+    existingClaim: ''
+    size: 30Gi
+    storageClass: ''
+    volumeMode: ''
+    subPath: ''
+    volumeName: ''
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  lifecycle: {}
+  updateStrategy:
+    type: Recreate
+  topologySpreadConstraints: {}
+  terminationGracePeriodSeconds: 120
+  initContainers: []
+  hostIPC: false
+  hostPID: false
+  hostNetwork: false
+  extraObjects: []
+  tests:
+    enabled: true
+    labels: {}
+    annotations: {}
+apache-apisix:
+  enabled: true
+  global:
+    imagePullSecrets: []
+    imageRegistry: ''
+  image:
+    repository: containers/apache-apisix
+    pullPolicy: IfNotPresent
+    tag: 3.13.0-4.9
+    registry: dp.apps.rancher.io
+  useDaemonSet: false
+  replicaCount: 1
+  priorityClassName: ''
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 90%
+    maxUnavailable: 1
+  resources: {}
+  hostNetwork: false
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  timezone: ''
+  extraEnvVars: []
+  updateStrategy: {}
+  extraDeploy: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraInitContainers: []
+  extraContainers: []
+  initContainer:
+    tag: 15.7-19.10
+    registry: dp.apps.rancher.io
+    repository: containers/bci-busybox
+  autoscaling:
+    enabled: false
+    version: v2
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  nameOverride: ''
+  fullnameOverride: ''
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ''
+  rbac:
+    create: false
+  service:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    externalIPs: []
+    http:
+      enabled: true
+      servicePort: 80
+      containerPort: 9080
+      additionalContainerPorts: []
+    tls:
+      servicePort: 443
+    stream:
+      enabled: false
+      tcp: []
+      udp: []
+    labelsOverride: {}
+  ingress:
+    enabled: false
+    servicePort: null
+    annotations: {}
+    hosts:
+      - host: apisix.local
+        paths: []
+    tls: []
+  control:
+    enabled: true
+    service:
+      annotations: {}
+      type: ClusterIP
+      externalIPs: []
+      ip: 127.0.0.1
+      port: 9090
+      servicePort: 9090
+    ingress:
+      enabled: false
+      annotations: {}
+      hosts:
+        - host: apisix-control.local
+          paths:
+            - /*
+      tls: []
+  metrics:
+    serviceMonitor:
+      enabled: false
+      namespace: ''
+      name: ''
+      interval: 15s
+      labels: {}
+      annotations: {}
+  apisix:
+    enableIPv6: true
+    enableHTTP2: true
+    enableServerTokens: true
+    setIDFromPodUID: false
+    luaModuleHook:
+      enabled: false
+      luaPath: ''
+      hookPoint: ''
+      configMapRef:
+        name: ''
+        mounts:
+          - key: ''
+            path: ''
+    ssl:
+      enabled: false
+      containerPort: 9443
+      additionalContainerPorts: []
+      existingCASecret: ''
+      certCAFilename: ''
+      enableHTTP3: false
+      sslProtocols: TLSv1.2 TLSv1.3
+      fallbackSNI: ''
+    router:
+      http: radixtree_host_uri
+    fullCustomConfig:
+      enabled: false
+      config: {}
+    deployment:
+      mode: traditional
+      role: traditional
+      role_traditional:
+        config_provider: etcd
+    admin:
+      enabled: true
+      enable_admin_ui: true
+      type: ClusterIP
+      externalIPs: []
+      ip: 0.0.0.0
+      port: 9180
+      servicePort: 9180
+      cors: true
+      credentials:
+        admin: edd1c9f034335f136f87ad84b625c8f1
+        viewer: 4054f7cf07e344346cd3f287985e76a2
+        secretName: ''
+        secretAdminKey: ''
+        secretViewerKey: ''
+      allow:
+        ipList:
+          - 127.0.0.1/24
+      ingress:
+        enabled: false
+        annotations: {}
+        hosts:
+          - host: apisix-admin.local
+            paths:
+              - /apisix
+        tls: []
+    nginx:
+      workerRlimitNofile: '20480'
+      workerConnections: '10620'
+      workerProcesses: auto
+      enableCPUAffinity: true
+      keepaliveTimeout: 60s
+      envs: []
+      logs:
+        enableAccessLog: true
+        accessLog: /dev/stdout
+        accessLogFormat: >-
+          $remote_addr - $remote_user [$time_local] $http_host \"$request\" $status $body_bytes_sent $request_time
+          \"$http_referer\" \"$http_user_agent\" $upstream_addr $upstream_status $upstream_response_time
+          \"$upstream_scheme://$upstream_host$upstream_uri\"
+        accessLogFormatEscape: default
+        errorLog: /dev/stderr
+        errorLogLevel: warn
+      configurationSnippet:
+        main: ''
+        httpStart: ''
+        httpEnd: ''
+        httpSrv: ''
+        httpAdmin: ''
+        stream: ''
+      customLuaSharedDicts: []
+      luaSharedDicts: []
+    discovery:
+      enabled: false
+      registry: {}
+    dns:
+      resolvers:
+        - 127.0.0.1
+        - 172.20.0.10
+        - 114.114.114.114
+        - 223.5.5.5
+        - 1.1.1.1
+        - 8.8.8.8
+      validity: 30
+      timeout: 5
+    vault:
+      enabled: false
+      host: ''
+      timeout: 10
+      token: ''
+      prefix: ''
+    prometheus:
+      enabled: false
+      path: /apisix/prometheus/metrics
+      metricPrefix: apisix_
+      containerPort: 9091
+    plugins: []
+    stream_plugins: []
+    pluginAttrs: {}
+    extPlugin:
+      enabled: false
+      cmd:
+        - /path/to/apisix-plugin-runner/runner
+        - run
+    wasm:
+      enabled: false
+      plugins: []
+    customPlugins:
+      enabled: false
+      luaPath: /opts/custom_plugins/?.lua
+      plugins:
+        - name: plugin-name
+          attrs: {}
+          configMap:
+            name: configmap-name
+            mounts:
+              - key: the-file-name
+                path: mount-path
+    status:
+      ip: 0.0.0.0
+      port: 7085
+  externalEtcd:
+    host:
+      - http://etcd.host:2379
+    user: root
+    password: ''
+    existingSecret: ''
+    secretPasswordKey: etcd-root-password
+  etcd:
+    enabled: true
+    prefix: /apisix
+    timeout: 30
+    auth:
+      rbac:
+        create: false
+        rootPassword: ''
+      tls:
+        enabled: false
+        existingSecret: ''
+        certFilename: ''
+        certKeyFilename: ''
+        verify: true
+        sni: ''
+    containerSecurityContext:
+      enabled: false
+    servicePort: 2379
+    replicaCount: 3
+    autoCompactionRetention: 1h
+    autoCompactionMode: periodic
+  ingress-controller:
+    enabled: false
+    config:
+      apisix:
+        adminAPIVersion: v3
