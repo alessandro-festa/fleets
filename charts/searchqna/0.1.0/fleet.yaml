@@ -1,7 +1,0 @@
-defaultNamespace: searchqna
-helm:
-  releaseName: searchqna
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
