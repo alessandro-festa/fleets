@@ -1,7 +1,0 @@
-defaultNamespace: suse-ai-genai
-helm:
-  releaseName: suse-ai-genai
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
