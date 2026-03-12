@@ -1,0 +1,132 @@
+global:
+  imagePullSecrets:
+    - application-collection
+  namespace: ''
+agentqna:
+  enabled: true
+  replicaCount: 1
+  imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ''
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  docretriever:
+    image:
+      repository: opea/doc-index-retriever
+      tag: latest
+  sqlagent:
+    toolHostPath: /mnt/tools
+    db_name: Chinook
+    db_path: sqlite:////home/user/tools/Chinook_Sqlite.sqlite
+    service:
+      port: 9096
+    strategy: sql_agent_llama
+    with_memory: false
+    use_hints: 'false'
+    recursion_limit: '6'
+    llm_engine: vllm
+    llm_endpoint_url: ''
+    model: meta-llama/Llama-3.3-70B-Instruct
+    temperature: '0'
+    max_new_tokens: '4096'
+    stream: 'false'
+    tools: ''
+    require_human_feedback: 'false'
+  ragagent:
+    toolHostPath: /mnt/tools
+    service:
+      port: 9095
+    strategy: rag_agent_llama
+    with_memory: false
+    recursion_limit: '6'
+    llm_engine: vllm
+    llm_endpoint_url: ''
+    model: meta-llama/Llama-3.3-70B-Instruct
+    temperature: '0'
+    max_new_tokens: '4096'
+    stream: 'false'
+    tools: /home/user/tools/worker_agent_tools.yaml
+    require_human_feedback: 'false'
+    RETRIEVAL_TOOL_URL: ''
+  supervisor:
+    toolHostPath: /mnt/tools
+    service:
+      port: 9090
+    strategy: react_llama
+    with_memory: true
+    recursion_limit: 10
+    llm_engine: vllm
+    llm_endpoint_url: ''
+    model: meta-llama/Llama-3.3-70B-Instruct
+    temperature: '0'
+    max_new_tokens: '4096'
+    stream: 'true'
+    tools: /home/user/tools/supervisor_agent_tools.yaml
+    require_human_feedback: false
+    CRAG_SERVER: ''
+    WORKER_AGENT_URL: ''
+    SQL_AGENT_URL: ''
+  crag:
+    image:
+      repository: aicrowd/kdd-cup-24-crag-mock-api
+      tag: v0
+  tgi:
+    enabled: false
+  vllm:
+    enabled: false
+  agentqna-ui:
+    image:
+      repository: opea/agent-ui
+      tag: latest
+    containerPort: 8080
+    service:
+      type: NodePort
+  global:
+    http_proxy: ''
+    https_proxy: ''
+    no_proxy: ''
+    HF_TOKEN: insert-your-huggingface-token-here
+    sharedSAName: agentqna
+    modelUseHostPath: ''
+    monitoring: false
+    prometheusRelease: prometheus-stack
+agent:
+  enabled: true
+tgi:
+  enabled: true
+vllm:
+  enabled: true
+tei:
+  enabled: true
+embedding-usvc:
+  enabled: true
+teirerank:
+  enabled: true
+reranking-usvc:
+  enabled: true
+redis-vector-db:
+  enabled: true
+retriever-usvc:
+  enabled: true
+data-prep:
+  enabled: true
+ui:
+  enabled: true
