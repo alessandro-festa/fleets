@@ -1,7 +1,0 @@
-defaultNamespace: agentqna
-helm:
-  releaseName: agentqna
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
