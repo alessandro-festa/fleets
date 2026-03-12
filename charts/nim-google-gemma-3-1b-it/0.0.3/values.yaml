@@ -1,0 +1,722 @@
+global:
+  imagePullSecrets:
+    - application-collection
+  namespace: ''
+argo-workflows:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  images:
+    tag: ''
+    pullPolicy: Always
+    pullSecrets: []
+  crds:
+    install: false
+    keep: true
+    full: false
+    annotations: {}
+  createAggregateRoles: true
+  nameOverride: null
+  fullnameOverride: null
+  namespaceOverride: ''
+  commonLabels: {}
+  kubeVersionOverride: ''
+  apiVersionOverrides:
+    autoscaling: ''
+    cloudgoogle: ''
+    monitoring: ''
+  singleNamespace: false
+  workflow:
+    namespace: null
+    serviceAccount:
+      create: false
+      labels: {}
+      annotations: {}
+      name: argo-workflow
+      pullSecrets: []
+    rbac:
+      create: true
+      agentPermissions: false
+      artifactGC: false
+      serviceAccounts: []
+      rules: []
+  controller:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/workflow-controller
+      tag: 3.7.10-4.3
+    parallelism: null
+    resourceRateLimit: {}
+    rbac:
+      create: true
+      secretWhitelist: []
+      accessAllSecrets: false
+      writeConfigMaps: false
+    configMap:
+      create: true
+      name: ''
+      annotations: {}
+    namespaceParallelism: null
+    initialDelay: null
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    metricsConfig:
+      enabled: false
+      path: /metrics
+      interval: 30s
+      port: 9090
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      portName: metrics
+      servicePort: 8080
+      servicePortName: metrics
+      scheme: http
+      headlessService: false
+      honorLabels: false
+      relabelings: []
+      metricRelabelings: []
+      targetLabels: []
+      modifiers: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    persistence: {}
+    workflowDefaults: {}
+    workflowWorkers: null
+    workflowTTLWorkers: null
+    podCleanupWorkers: null
+    cronWorkflowWorkers: null
+    workflowRestrictions: {}
+    telemetryConfig:
+      enabled: false
+      path: /telemetry
+      interval: 30s
+      port: 8081
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      servicePort: 8081
+      servicePortName: telemetry
+      scheme: http
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+      namespace: ''
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    name: workflow-controller
+    workflowNamespaces:
+      - default
+    instanceID:
+      enabled: false
+      useReleaseName: false
+      explicitID: ''
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    serviceType: ClusterIP
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    livenessProbe:
+      httpGet:
+        port: 6060
+        path: /healthz
+      failureThreshold: 3
+      initialDelaySeconds: 90
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraEnv: []
+    extraArgs: []
+    volumeMounts: []
+    volumes: []
+    replicas: 1
+    revisionHistoryLimit: 10
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    links: []
+    columns: []
+    navColor: ''
+    clusterWorkflowTemplates:
+      enabled: true
+      serviceAccounts: []
+    extraContainers: []
+    extraInitContainers: []
+    retentionPolicy: {}
+    nodeEvents:
+      enabled: true
+    workflowEvents:
+      enabled: true
+    kubeConfig: {}
+    podGCGracePeriodSeconds: null
+    podGCDeleteDelayDuration: ''
+    synchronization: {}
+  mainContainer:
+    imagePullPolicy: ''
+    resources: {}
+    env: []
+    envFrom: []
+    securityContext: {}
+  executor:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argoexec
+      tag: 3.7.10-4.3
+      pullPolicy: ''
+    resources: {}
+    args: []
+    env: []
+    securityContext: {}
+  server:
+    enabled: true
+    baseHref: /
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argocli
+      tag: 3.7.10-4.3
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    rbac:
+      create: true
+    securityContext:
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    name: server
+    serviceType: ClusterIP
+    servicePort: 2746
+    serviceTargetPort: 2746
+    serviceNodePort: null
+    servicePortName: ''
+    hostAliases: []
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerIP: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    replicas: 1
+    revisionHistoryLimit: 10
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    secure: false
+    extraEnv: []
+    authMode: ''
+    authModes: []
+    extraArgs: []
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    tmpVolume:
+      emptyDir: {}
+    volumeMounts: []
+    volumes: []
+    ingress:
+      enabled: false
+      annotations: {}
+      labels: {}
+      ingressClassName: ''
+      hosts: []
+      paths:
+        - /
+      pathType: Prefix
+      extraPaths: []
+      tls: []
+    GKEbackendConfig:
+      enabled: false
+      spec: {}
+    GKEmanagedCertificate:
+      enabled: false
+      domains:
+        - argoworkflows.example.com
+    GKEfrontendConfig:
+      enabled: false
+      spec: {}
+    httproute:
+      enabled: false
+      labels: {}
+      annotations: {}
+      parentRefs: []
+      hostnames: []
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+    backendTLSPolicy:
+      enabled: false
+      labels: {}
+      annotations: {}
+      targetRefs: []
+      validation: {}
+    clusterWorkflowTemplates:
+      enabled: true
+      enableEditing: true
+    sso:
+      enabled: false
+      issuer: https://accounts.google.com
+      clientId:
+        name: argo-server-sso
+        key: client-id
+      clientSecret:
+        name: argo-server-sso
+        key: client-secret
+      redirectUrl: ''
+      rbac:
+        enabled: true
+        secretWhitelist: []
+      scopes: []
+      sessionExpiry: ''
+      issuerAlias: ''
+      customGroupClaimName: ''
+      userInfoPath: ''
+      insecureSkipVerify: false
+      filterGroupsRegex: []
+    extraContainers: []
+    extraInitContainers: []
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    livenessProbe:
+      enabled: false
+      httpGet:
+        port: 2746
+        path: /
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+  extraObjects: []
+  useStaticCredentials: true
+  artifactRepository:
+    archiveLogs: false
+    s3: {}
+    gcs: {}
+    azure: {}
+  customArtifactRepository: {}
+  artifactRepositoryRef: {}
+  emissary:
+    images: []
+pytorch:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  image:
+    registry: dp.apps.rancher.io
+    repository: containers/pytorch
+    tag: 2.9.1-nvidia-1.18
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  gpu:
+    enabled: false
+    type: nvidia
+    number: 1
+    nvidiaResource: nvidia.com/gpu
+    mig:
+      enabled: false
+      devices: {}
+  runtimeClassName: ''
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext: {}
+  service:
+    enabled: false
+    type: ClusterIP
+    port: null
+    containerPort: null
+    nodePort: ''
+    loadBalancerIP: null
+    loadBalancerClass: null
+    annotations: {}
+  serviceAccount:
+    create: false
+    automount: true
+    annotations: {}
+    name: ''
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+  resources:
+    requests: {}
+    limits: {}
+  livenessProbe:
+    enabled: false
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 20
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: false
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 20
+    failureThreshold: 6
+    successThreshold: 1
+  volumes: []
+  volumeMounts: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  entrypointscript:
+    filename: ''
+    arguments: []
+  persistence:
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    annotations: {}
+    existingClaim: ''
+    size: 30Gi
+    storageClass: ''
+    volumeMode: ''
+    subPath: ''
+    volumeName: ''
+  gitClone:
+    enabled: false
+    repository: ''
+    revision: ''
+    secretName: ''
+  configMapExtFiles: ''
+google/gemma-3-1b-it:
+  enabled: true
+opentelemetry-collector:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  mode: ''
+  namespaceOverride: ''
+  presets:
+    logsCollection:
+      enabled: false
+      includeCollectorLogs: false
+      storeCheckpoints: false
+      maxRecombineLogSize: 102400
+    hostMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+      extractAllPodLabels: false
+      extractAllPodAnnotations: false
+    kubeletMetrics:
+      enabled: false
+    kubernetesEvents:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    annotationDiscovery:
+      logs:
+        enabled: false
+      metrics:
+        enabled: false
+  configMap:
+    create: true
+    existingName: ''
+  internalTelemetryViaOTLP:
+    endpoint: ''
+    headers: []
+    traces:
+      enabled: false
+      endpoint: ''
+      headers: []
+    metrics:
+      enabled: false
+      endpoint: ''
+      headers: []
+    logs:
+      enabled: false
+      endpoint: ''
+      headers: []
+  config:
+    exporters:
+      debug: {}
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:14250
+          thrift_http:
+            endpoint: ${env:MY_POD_IP}:14268
+          thrift_compact:
+            endpoint: ${env:MY_POD_IP}:6831
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: opentelemetry-collector
+              scrape_interval: 10s
+              static_configs:
+                - targets:
+                    - ${env:MY_POD_IP}:8888
+      zipkin:
+        endpoint: ${env:MY_POD_IP}:9411
+    service:
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: ${env:MY_POD_IP}
+                    port: 8888
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          exporters:
+            - debug
+          processors:
+            - memory_limiter
+            - batch
+          receivers:
+            - otlp
+        metrics:
+          exporters:
+            - debug
+          processors:
+            - memory_limiter
+            - batch
+          receivers:
+            - otlp
+            - prometheus
+        traces:
+          exporters:
+            - debug
+          processors:
+            - memory_limiter
+            - batch
+          receivers:
+            - otlp
+            - jaeger
+            - zipkin
+  alternateConfig: {}
+  image:
+    repository: containers/opentelemetry-collector
+    pullPolicy: IfNotPresent
+    tag: 0.147.0-k8s-7.1
+    digest: ''
+    registry: dp.apps.rancher.io
+  imagePullSecrets: []
+  command:
+    name: ''
+    extraArgs: []
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ''
+    automountServiceAccountToken: true
+  clusterRole:
+    create: false
+    annotations: {}
+    name: ''
+    rules: []
+    clusterRoleBinding:
+      annotations: {}
+      name: ''
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ''
+  runtimeClassName: ''
+  extraEnvs: []
+  extraEnvsFrom: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraManifests: []
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      hostPort: 4317
+      protocol: TCP
+      appProtocol: grpc
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      hostPort: 4318
+      protocol: TCP
+    jaeger-compact:
+      enabled: true
+      containerPort: 6831
+      servicePort: 6831
+      hostPort: 6831
+      protocol: UDP
+    jaeger-thrift:
+      enabled: true
+      containerPort: 14268
+      servicePort: 14268
+      hostPort: 14268
+      protocol: TCP
+    jaeger-grpc:
+      enabled: true
+      containerPort: 14250
+      servicePort: 14250
+      hostPort: 14250
+      protocol: TCP
+    zipkin:
+      enabled: true
+      containerPort: 9411
+      servicePort: 9411
+      hostPort: 9411
+      protocol: TCP
+    metrics:
+      enabled: false
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+  useGOMEMLIMIT: true
+  resources: {}
+  enableConfigChecksumAnnotation: true
+  podAnnotations: {}
+  podLabels: {}
+  additionalLabels: {}
+  hostNetwork: false
+  hostPID: false
+  hostAliases: []
+  dnsPolicy: ''
+  dnsConfig: {}
+  schedulerName: ''
+  replicaCount: 1
+  revisionHistoryLimit: 10
+  annotations: {}
+  extraContainers: []
+  initContainers: []
+  lifecycleHooks: {}
+  livenessProbe:
+    httpGet:
+      port: 13133
+      path: /
+  readinessProbe:
+    httpGet:
+      port: 13133
+      path: /
+  startupProbe: {}
+  service:
+    type: ClusterIP
+    annotations: {}
+  ingress:
+    enabled: false
+    additionalIngresses: []
+  podMonitor:
+    enabled: false
+    metricsEndpoints:
+      - port: metrics
+    extraLabels: {}
+  serviceMonitor:
+    enabled: false
+    metricsEndpoints:
+      - port: metrics
+    extraLabels: {}
+    relabelings: []
+    metricRelabelings: []
+  podDisruptionBudget:
+    enabled: false
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    behavior: {}
+    targetCPUUtilizationPercentage: 80
+    additionalMetrics: []
+  rollout:
+    rollingUpdate: {}
+    strategy: RollingUpdate
+  prometheusRule:
+    enabled: false
+    groups: []
+    defaultRules:
+      enabled: false
+      additionalRuleLabels: {}
+      additionalRuleAnnotations: {}
+    extraLabels: {}
+  statefulset:
+    volumeClaimTemplates: []
+    podManagementPolicy: Parallel
+    persistentVolumeClaimRetentionPolicy:
+      enabled: false
+      whenDeleted: Retain
+      whenScaled: Retain
+  networkPolicy:
+    enabled: false
+    annotations: {}
+    allowIngressFrom: []
+    extraIngressRules: []
+    egressRules: []
+  shareProcessNamespace: false
