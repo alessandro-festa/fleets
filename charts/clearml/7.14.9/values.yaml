@@ -1,0 +1,1093 @@
+global:
+  imagePullSecrets:
+    - application-collection
+  namespace: ''
+redis:
+  enabled: true
+  global:
+    storageClassName: ''
+    imageRegistry: ''
+    imagePullSecrets: []
+  commonAnnotations: {}
+  commonLabels: {}
+  fullnameOverride: ''
+  nameOverride: ''
+  extraManifests: []
+  clusterDomain: cluster.local
+  images:
+    redis:
+      registry: dp.apps.rancher.io
+      repository: containers/redis
+      tag: 8.6.1-1.2
+      digest: ''
+      pullPolicy: IfNotPresent
+    sentinel:
+      registry: dp.apps.rancher.io
+      repository: containers/redis
+      tag: 8.6.1-1.2
+      digest: ''
+      pullPolicy: IfNotPresent
+    metrics:
+      registry: dp.apps.rancher.io
+      repository: containers/redis-exporter
+      tag: 1.81.0-16.3
+      digest: ''
+      pullPolicy: IfNotPresent
+    volume-permissions:
+      registry: dp.apps.rancher.io
+      repository: containers/bci-busybox
+      tag: 15.7-19.10
+      digest: ''
+      pullPolicy: IfNotPresent
+  containerPorts:
+    redis: 6379
+    sentinel: 26379
+    metrics: 9121
+    '*': null
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ''
+    existingSecret: ''
+    passwordKey: ''
+  tls:
+    enabled: false
+    authClients: true
+    existingSecret: ''
+    certFilename: ''
+    keyFilename: ''
+    caCertFilename: ''
+    dhParamsFilename: ''
+    replication: true
+    cluster: true
+  disableCommands:
+    - FLUSHALL
+    - FLUSHDB
+  appendOnlyFile: true
+  useHostnames: true
+  configurationFile: redis.conf
+  configuration: ''
+  existingConfigMap: ''
+  configMap:
+    enabled: true
+    '{{ .Values.configurationFile }}': >-
+      {{ tpl (include "application-collection.redis.configuration" (dict "header" (.Files.Get
+      "config/redis-defaults.conf.tpl") "context" $)) . }}
+    '*': null
+  secret:
+    enabled: '{{ and (eq (include "application-collection.redis.auth.enabled" .) "true") (not .Values.auth.existingSecret) }}'
+    '{{ include "application-collection.redis.auth.passwordKey" . }}': '{{ default (randAlphaNum 16) .Values.auth.password }}'
+    '*': null
+  nodeCount: 1
+  redisModules: []
+  statefulset:
+    enabled: true
+    serviceName: ''
+    template: {}
+    replicas: ''
+    updateStrategy:
+      type: RollingUpdate
+    podManagementPolicy: Parallel
+    persistentVolumeClaimRetentionPolicy: {}
+    '*': null
+  podTemplates:
+    annotations:
+      kubectl.kubernetes.io/default-container: redis
+    labels: {}
+    initContainers:
+      volume-permissions:
+        enabled: false
+        image: ''
+        imagePullPolicy: ''
+        command:
+          - /bin/sh
+          - '-ec'
+          - >
+            chown -R {{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}
+            /mnt/redis/data
+        args: []
+        env: {}
+        envFrom: []
+        volumeMounts:
+          data:
+            enabled: true
+            mountPath: /mnt/redis/data
+        resources: {}
+        securityContext:
+          runAsUser: 0
+        '*': null
+    containers:
+      redis:
+        enabled: true
+        image: ''
+        imagePullPolicy: ''
+        command:
+          - /bin/bash
+          - '-ec'
+          - |
+            {{- if eq .Values.architecture "cluster" }}
+            exec /mnt/redis/scripts/redis-cluster-entrypoint.sh
+            {{- else }}
+            exec /mnt/redis/scripts/redis-entrypoint.sh
+            {{- end }}
+        args: []
+        ports: {}
+        env:
+          REDISCLI_AUTH:
+            enabled: '{{ eq (include "application-collection.redis.auth.enabled" .) "true" }}'
+            value: $(_REDIS_PASSWORD)
+          _FQDN_CLUSTER_PREFIX: >-
+            {{ printf "%s.%s.svc.%s" (include "application-collection.fullName" (dict "suffix" "headless" "context" $))
+            .Release.Namespace .Values.clusterDomain }}
+          _REDIS_DEFAULTS_CONF_FILE: '{{ .Values.podTemplates.containers.redis.volumeMounts.conf.mountPath }}/{{ .Values.configurationFile }}'
+          _REDIS_CONF_FILE: '{{ .Values.podTemplates.containers.redis.volumeMounts.data.mountPath }}/{{ .Values.configurationFile }}'
+          _REDIS_MASTER_HOST:
+            enabled: '{{ ne .Values.architecture "cluster" }}'
+            value: >-
+              {{ printf "%s.%s.%s.svc.%s" (include "application-collection.fullName" (dict "suffix" "0" "context" $))
+              (include "application-collection.fullName" (dict "suffix" "headless" "context" $)) .Release.Namespace
+              .Values.clusterDomain }}
+          _REDIS_PASSWORD:
+            enabled: '{{ eq (include "application-collection.redis.auth.enabled" .) "true" }}'
+            valueFrom:
+              secretKeyRef:
+                name: '{{ coalesce .Values.auth.existingSecret (include "application-collection.fullName" .) }}'
+                key: '{{ include "application-collection.redis.auth.passwordKey" . }}'
+          _REDIS_PORT: '{{ .Values.containerPorts.redis }}'
+          _REDIS_CLUSTER_CONF_FILE:
+            enabled: '{{ eq .Values.architecture "cluster" }}'
+            value: >-
+              {{ .Values.podTemplates.containers.redis.volumeMounts.data.mountPath }}/{{
+              .Values.cluster.configurationFile }}
+          _REDIS_CLUSTER_NODES:
+            enabled: '{{ eq .Values.architecture "cluster" }}'
+            value: '{{ include "application-collection.redis.clusterNodes" . }}'
+          _REDIS_CLUSTER_REPLICAS_PER_MASTER:
+            enabled: '{{ eq .Values.architecture "cluster" }}'
+            value: '{{ .Values.cluster.replicasPerMaster }}'
+          _USE_HOSTNAMES: '{{ .Values.useHostnames }}'
+        envFrom: []
+        volumeMounts:
+          conf:
+            enabled: true
+            mountPath: /mnt/redis/conf
+            readOnly: true
+          data:
+            enabled: true
+            mountPath: /mnt/redis/data
+          scripts:
+            enabled: true
+            mountPath: /mnt/redis/scripts
+            readOnly: true
+          certs:
+            enabled: '{{ .Values.tls.enabled }}'
+            mountPath: /mnt/redis/certs
+            readOnly: true
+        resources: {}
+        securityContext: {}
+        livenessProbe:
+          enabled: true
+          exec:
+            command:
+              - /mnt/redis/scripts/redis-liveness-check.sh
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+          successThreshold: 1
+        readinessProbe:
+          enabled: true
+          exec:
+            command:
+              - /mnt/redis/scripts/redis-readiness-check.sh
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+          successThreshold: 1
+        startupProbe:
+          enabled: false
+          tcpSocket:
+            port: redis
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+          successThreshold: 1
+        '*': null
+      metrics:
+        enabled: '{{ .Values.metrics.enabled }}'
+        image: ''
+        imagePullPolicy: ''
+        command: ''
+        args: []
+        ports: {}
+        env:
+          REDIS_ADDR: >-
+            {{ printf "%s://localhost:%d" (ternary "rediss" "redis" .Values.tls.enabled) (int
+            .Values.containerPorts.redis) }}
+          REDIS_PASSWORD:
+            enabled: '{{ eq (include "application-collection.redis.auth.enabled" .) "true" }}'
+            valueFrom:
+              secretKeyRef:
+                name: '{{ coalesce .Values.auth.existingSecret (include "application-collection.fullName" .) }}'
+                key: '{{ include "application-collection.redis.auth.passwordKey" . }}'
+          REDIS_EXPORTER_TLS_CLIENT_CERT_FILE:
+            enabled: '{{ and .Values.tls.enabled .Values.tls.authClients }}'
+            value: '{{ .Values.podTemplates.containers.metrics.volumeMounts.certs.mountPath }}/{{ .Values.tls.certFilename }}'
+          REDIS_EXPORTER_TLS_CLIENT_KEY_FILE:
+            enabled: '{{ and .Values.tls.enabled .Values.tls.authClients }}'
+            value: '{{ .Values.podTemplates.containers.metrics.volumeMounts.certs.mountPath }}/{{ .Values.tls.keyFilename }}'
+          REDIS_EXPORTER_TLS_CA_CERT_FILE:
+            enabled: '{{ and .Values.tls.enabled .Values.tls.authClients }}'
+            value: >-
+              {{ .Values.podTemplates.containers.metrics.volumeMounts.certs.mountPath }}/{{ .Values.tls.caCertFilename
+              }}
+          REDIS_EXPORTER_WEB_LISTEN_ADDRESS: '{{ printf ":%d" (int .Values.containerPorts.metrics) }}'
+        envFrom: []
+        volumeMounts:
+          certs:
+            enabled: '{{ and .Values.tls.enabled .Values.tls.authClients }}'
+            mountPath: /mnt/redis/certs
+            readOnly: true
+        resources: {}
+        securityContext: {}
+        livenessProbe:
+          enabled: true
+          tcpSocket:
+            port: metrics
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+          successThreshold: 1
+        readinessProbe:
+          enabled: true
+          httpGet:
+            port: metrics
+            path: /
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
+          successThreshold: 1
+        startupProbe:
+          enabled: false
+          tcpSocket:
+            port: metrics
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+          successThreshold: 1
+        '*': null
+    imagePullSecrets: []
+    volumes:
+      conf:
+        enabled: true
+        configMap:
+          name: '{{ include "application-collection.fullName" $ }}'
+          defaultMode: 256
+      data:
+        enabled: '{{ and (not .Values.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+        emptyDir:
+          medium: ''
+      scripts:
+        enabled: true
+        configMap:
+          name: '{{ include "application-collection.fullName" (dict "suffix" "scripts" "context" $) }}'
+          defaultMode: 360
+      certs:
+        enabled: '{{ .Values.tls.enabled }}'
+        secret:
+          secretName: '{{ tpl .Values.tls.existingSecret . }}'
+          defaultMode: 256
+    serviceAccountName: ''
+    securityContext: {}
+    '*': null
+  service:
+    enabled: true
+    annotations: {}
+    type: ClusterIP
+    nodePorts:
+      redis: ''
+      '*': null
+    ports:
+      redis: ''
+      '*': null
+    '*': null
+  headlessService:
+    annotations: {}
+    type: ClusterIP
+    clusterIP: None
+    publishNotReadyAddresses: true
+    ports:
+      redis: ''
+      '*': null
+    '*': null
+  networkPolicy:
+    enabled: false
+    allowExternalConnections: true
+    egress:
+      enabled: true
+      allowExternalConnections: true
+      extraRules: []
+      namespaceLabels: {}
+      podLabels: {}
+      ports:
+        redis: ''
+        sentinel: ''
+        metrics: ''
+        '*': null
+    ingress:
+      enabled: true
+      allowExternalConnections: true
+      namespaceLabels: {}
+      podLabels: {}
+      extraRules: []
+      ports:
+        redis: ''
+        sentinel: ''
+        metrics: ''
+        '*': null
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: ''
+    maxUnavailable: ''
+  sentinel:
+    nodeCount: 3
+    masterSet: mymaster
+    quorum: 2
+    downAfterMilliseconds: 10000
+    failoverTimeout: 180000
+    parallelSyncs: 1
+    configurationFile: sentinel.conf
+    configuration: ''
+    existingConfigMap: ''
+    configMap:
+      enabled: true
+      '{{ .Values.sentinel.configurationFile }}': >-
+        {{ tpl (include "application-collection.redis.configuration" (dict "header" (.Files.Get
+        "config/sentinel-defaults.conf.tpl") "values" .Values.sentinel.configuration "context" $)) . }}
+      '*': null
+    statefulset:
+      enabled: true
+      serviceName: ''
+      template: {}
+      replicas: ''
+      updateStrategy:
+        type: RollingUpdate
+      podManagementPolicy: Parallel
+      persistentVolumeClaimRetentionPolicy: {}
+      '*': null
+    podTemplates:
+      annotations:
+        kubectl.kubernetes.io/default-container: sentinel
+      labels: {}
+      initContainers:
+        volume-permissions:
+          enabled: false
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /bin/sh
+            - '-ec'
+            - >
+              chown -R {{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}
+              /mnt/sentinel
+          args: []
+          env: {}
+          envFrom: []
+          volumeMounts:
+            data:
+              enabled: true
+              mountPath: /mnt/sentinel/data
+          resources: {}
+          securityContext:
+            runAsUser: 0
+          '*': null
+      containers:
+        sentinel:
+          enabled: true
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /mnt/sentinel/scripts/sentinel-entrypoint.sh
+          args: []
+          ports: {}
+          env:
+            _FQDN_CLUSTER_PREFIX: >-
+              {{ printf "%s.%s.svc.%s" (include "application-collection.fullName" (dict "suffix" "sentinel-headless"
+              "context" $)) .Release.Namespace .Values.clusterDomain }}
+            _REDIS_MASTER_HOST: >-
+              {{ printf "%s.%s.%s.svc.%s" (include "application-collection.fullName" (dict "suffix" "0" "context" $))
+              (include "application-collection.fullName" (dict "suffix" "headless" "context" $)) .Release.Namespace
+              .Values.clusterDomain }}
+            _REDIS_PASSWORD:
+              enabled: '{{ eq (include "application-collection.redis.auth.enabled" .) "true" }}'
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ coalesce .Values.auth.existingSecret (include "application-collection.fullName" .) }}'
+                  key: '{{ include "application-collection.redis.auth.passwordKey" . }}'
+            _REDIS_PORT: '{{ .Values.containerPorts.redis }}'
+            _SENTINEL_DEFAULTS_CONF_FILE: >-
+              {{ .Values.sentinel.podTemplates.containers.sentinel.volumeMounts.conf.mountPath }}/{{
+              .Values.sentinel.configurationFile }}
+            _SENTINEL_CONF_FILE: >-
+              {{ .Values.sentinel.podTemplates.containers.sentinel.volumeMounts.data.mountPath }}/{{
+              .Values.sentinel.configurationFile }}
+            _SENTINEL_DOWN_AFTER_MS: '{{ .Values.sentinel.downAfterMilliseconds }}'
+            _SENTINEL_FAILOVER_TIMEOUT: '{{ .Values.sentinel.failoverTimeout }}'
+            _SENTINEL_MASTER_SET: '{{ .Values.sentinel.masterSet }}'
+            _SENTINEL_PORT: '{{ .Values.containerPorts.sentinel }}'
+            _SENTINEL_PARALLEL_SYNCS: '{{ .Values.sentinel.parallelSyncs }}'
+            _SENTINEL_QUORUM: '{{ .Values.sentinel.quorum }}'
+            _USE_HOSTNAMES: '{{ .Values.useHostnames }}'
+          envFrom: []
+          volumeMounts:
+            conf:
+              enabled: true
+              mountPath: /mnt/sentinel/conf-defaults
+              readOnly: true
+            data:
+              enabled: true
+              mountPath: /mnt/sentinel/data
+            scripts:
+              enabled: true
+              mountPath: /mnt/sentinel/scripts
+              readOnly: true
+            certs:
+              enabled: '{{ .Values.tls.enabled }}'
+              mountPath: /mnt/sentinel/certs
+              readOnly: true
+          resources: {}
+          securityContext: {}
+          livenessProbe:
+            enabled: true
+            exec:
+              command:
+                - /mnt/sentinel/scripts/sentinel-healthcheck.sh
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          readinessProbe:
+            enabled: true
+            exec:
+              command:
+                - /mnt/sentinel/scripts/sentinel-healthcheck.sh
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          startupProbe:
+            enabled: false
+            exec:
+              command:
+                - /mnt/sentinel/scripts/sentinel-healthcheck.sh
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+            successThreshold: 1
+          '*': null
+      imagePullSecrets: []
+      volumes:
+        conf:
+          enabled: true
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "sentinel" "context" $) }}'
+            defaultMode: 256
+        data:
+          enabled: '{{ and (not .Values.sentinel.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+          emptyDir:
+            medium: ''
+        scripts:
+          enabled: true
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "sentinel-scripts" "context" $) }}'
+            defaultMode: 360
+        certs:
+          enabled: '{{ .Values.tls.enabled }}'
+          secret:
+            secretName: '{{ tpl .Values.tls.existingSecret . }}'
+            defaultMode: 256
+      serviceAccountName: ''
+      securityContext: {}
+      '*': null
+    service:
+      enabled: true
+      annotations: {}
+      type: ClusterIP
+      nodePorts:
+        sentinel: ''
+        '*': null
+      ports:
+        sentinel: ''
+        '*': null
+      '*': null
+    headlessService:
+      annotations: {}
+      type: ClusterIP
+      clusterIP: None
+      publishNotReadyAddresses: true
+      ports:
+        sentinel: ''
+        '*': null
+      '*': null
+    networkPolicy:
+      enabled: false
+      allowExternalConnections: true
+      egress:
+        enabled: true
+        allowExternalConnections: true
+        extraRules: []
+        namespaceLabels: {}
+        podLabels: {}
+        ports:
+          redis: ''
+          sentinel: ''
+          metrics: ''
+          '*': null
+      ingress:
+        enabled: true
+        allowExternalConnections: true
+        namespaceLabels: {}
+        podLabels: {}
+        extraRules: []
+        ports:
+          redis: ''
+          sentinel: ''
+          metrics: ''
+          '*': null
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: ''
+      maxUnavailable: ''
+  cluster:
+    replicasPerMaster: 0
+    configurationFile: nodes.conf
+  metrics:
+    enabled: false
+    annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '{{ coalesce .Values.containerPorts.metrics .Values.containerPorts.client }}'
+    prometheusRule:
+      configuration: {}
+      enabled: false
+      labels: {}
+      namespace: ''
+    service:
+      enabled: true
+      annotations: {}
+      type: ClusterIP
+      nodePorts:
+        metrics: ''
+        '*': null
+      ports:
+        metrics: ''
+        '*': null
+      '*': null
+  persistence:
+    enabled: true
+    annotations: {}
+    labels: {}
+    existingClaim: ''
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 8Gi
+    storageClassName: ''
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000
+  containerSecurityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccount:
+    enabled: false
+    annotations: {}
+    labels: {}
+    name: ''
+    automountServiceAccountToken: true
+    imagePullSecrets: []
+    secrets: []
+argo-workflows:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  images:
+    tag: ''
+    pullPolicy: Always
+    pullSecrets: []
+  crds:
+    install: true
+    keep: true
+    full: false
+    annotations: {}
+  createAggregateRoles: true
+  nameOverride: null
+  fullnameOverride: null
+  namespaceOverride: ''
+  commonLabels: {}
+  kubeVersionOverride: ''
+  apiVersionOverrides:
+    autoscaling: ''
+    cloudgoogle: ''
+    monitoring: ''
+  singleNamespace: false
+  workflow:
+    namespace: null
+    serviceAccount:
+      create: false
+      labels: {}
+      annotations: {}
+      name: argo-workflow
+      pullSecrets: []
+    rbac:
+      create: true
+      agentPermissions: false
+      artifactGC: false
+      serviceAccounts: []
+      rules: []
+  controller:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/workflow-controller
+      tag: 3.7.10-4.3
+    parallelism: null
+    resourceRateLimit: {}
+    rbac:
+      create: true
+      secretWhitelist: []
+      accessAllSecrets: false
+      writeConfigMaps: false
+    configMap:
+      create: true
+      name: ''
+      annotations: {}
+    namespaceParallelism: null
+    initialDelay: null
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    metricsConfig:
+      enabled: false
+      path: /metrics
+      interval: 30s
+      port: 9090
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      portName: metrics
+      servicePort: 8080
+      servicePortName: metrics
+      scheme: http
+      headlessService: false
+      honorLabels: false
+      relabelings: []
+      metricRelabelings: []
+      targetLabels: []
+      modifiers: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    persistence: {}
+    workflowDefaults: {}
+    workflowWorkers: null
+    workflowTTLWorkers: null
+    podCleanupWorkers: null
+    cronWorkflowWorkers: null
+    workflowRestrictions: {}
+    telemetryConfig:
+      enabled: false
+      path: /telemetry
+      interval: 30s
+      port: 8081
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      servicePort: 8081
+      servicePortName: telemetry
+      scheme: http
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+      namespace: ''
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    name: workflow-controller
+    workflowNamespaces:
+      - default
+    instanceID:
+      enabled: false
+      useReleaseName: false
+      explicitID: ''
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    serviceType: ClusterIP
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    livenessProbe:
+      httpGet:
+        port: 6060
+        path: /healthz
+      failureThreshold: 3
+      initialDelaySeconds: 90
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraEnv: []
+    extraArgs: []
+    volumeMounts: []
+    volumes: []
+    replicas: 1
+    revisionHistoryLimit: 10
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    links: []
+    columns: []
+    navColor: ''
+    clusterWorkflowTemplates:
+      enabled: true
+      serviceAccounts: []
+    extraContainers: []
+    extraInitContainers: []
+    retentionPolicy: {}
+    nodeEvents:
+      enabled: true
+    workflowEvents:
+      enabled: true
+    kubeConfig: {}
+    podGCGracePeriodSeconds: null
+    podGCDeleteDelayDuration: ''
+    synchronization: {}
+  mainContainer:
+    imagePullPolicy: ''
+    resources: {}
+    env: []
+    envFrom: []
+    securityContext: {}
+  executor:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argoexec
+      tag: 3.7.10-4.3
+      pullPolicy: ''
+    resources: {}
+    args: []
+    env: []
+    securityContext: {}
+  server:
+    enabled: true
+    baseHref: /
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argocli
+      tag: 3.7.10-4.3
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    rbac:
+      create: true
+    securityContext:
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    name: server
+    serviceType: ClusterIP
+    servicePort: 2746
+    serviceTargetPort: 2746
+    serviceNodePort: null
+    servicePortName: ''
+    hostAliases: []
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerIP: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    replicas: 1
+    revisionHistoryLimit: 10
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    secure: false
+    extraEnv: []
+    authMode: ''
+    authModes: []
+    extraArgs: []
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    tmpVolume:
+      emptyDir: {}
+    volumeMounts: []
+    volumes: []
+    ingress:
+      enabled: false
+      annotations: {}
+      labels: {}
+      ingressClassName: ''
+      hosts: []
+      paths:
+        - /
+      pathType: Prefix
+      extraPaths: []
+      tls: []
+    GKEbackendConfig:
+      enabled: false
+      spec: {}
+    GKEmanagedCertificate:
+      enabled: false
+      domains:
+        - argoworkflows.example.com
+    GKEfrontendConfig:
+      enabled: false
+      spec: {}
+    httproute:
+      enabled: false
+      labels: {}
+      annotations: {}
+      parentRefs: []
+      hostnames: []
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+    backendTLSPolicy:
+      enabled: false
+      labels: {}
+      annotations: {}
+      targetRefs: []
+      validation: {}
+    clusterWorkflowTemplates:
+      enabled: true
+      enableEditing: true
+    sso:
+      enabled: false
+      issuer: https://accounts.google.com
+      clientId:
+        name: argo-server-sso
+        key: client-id
+      clientSecret:
+        name: argo-server-sso
+        key: client-secret
+      redirectUrl: ''
+      rbac:
+        enabled: true
+        secretWhitelist: []
+      scopes: []
+      sessionExpiry: ''
+      issuerAlias: ''
+      customGroupClaimName: ''
+      userInfoPath: ''
+      insecureSkipVerify: false
+      filterGroupsRegex: []
+    extraContainers: []
+    extraInitContainers: []
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    livenessProbe:
+      enabled: false
+      httpGet:
+        port: 2746
+        path: /
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+  extraObjects: []
+  useStaticCredentials: true
+  artifactRepository:
+    archiveLogs: false
+    s3: {}
+    gcs: {}
+    azure: {}
+  customArtifactRepository: {}
+  artifactRepositoryRef: {}
+  emissary:
+    images: []
+ollama:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  replicaCount: 1
+  knative:
+    enabled: false
+    containerConcurrency: 0
+    timeoutSeconds: 300
+    responseStartTimeoutSeconds: 300
+    idleTimeoutSeconds: 300
+    annotations: {}
+  image:
+    repository: containers/ollama
+    pullPolicy: IfNotPresent
+    tag: 0.12.9-11.15
+    registry: dp.apps.rancher.io
+  imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  namespaceOverride: ''
+  ollama:
+    port: 11434
+    gpu:
+      enabled: false
+      draEnabled: false
+      draDriverClass: gpu.nvidia.com
+      draExistingClaimTemplate: ''
+      type: nvidia
+      number: 1
+      nvidiaResource: nvidia.com/gpu
+      mig:
+        enabled: false
+        devices: {}
+    models:
+      pull: []
+      run: []
+      create: []
+      clean: false
+    insecure: false
+    mountPath: ''
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ''
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  priorityClassName: ''
+  securityContext: {}
+  runtimeClassName: ''
+  service:
+    type: ClusterIP
+    port: 11434
+    nodePort: 31434
+    loadBalancerIP: null
+    annotations: {}
+    labels: {}
+  deployment:
+    labels: {}
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: ollama.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  resources:
+    requests: {}
+    limits: {}
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 6
+    successThreshold: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  volumes: []
+  volumeMounts: []
+  extraArgs: []
+  extraEnv: []
+  extraEnvFrom: []
+  persistentVolume:
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    annotations: {}
+    existingClaim: ''
+    size: 30Gi
+    storageClass: ''
+    volumeMode: ''
+    subPath: ''
+    volumeName: ''
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  lifecycle: {}
+  updateStrategy:
+    type: Recreate
+  topologySpreadConstraints: {}
+  terminationGracePeriodSeconds: 120
+  initContainers: []
+  hostIPC: false
+  hostPID: false
+  hostNetwork: false
+  extraObjects: []
+  tests:
+    enabled: true
+    labels: {}
+    annotations: {}
+elasticsearch:
+  enabled: true
+clearml:
+  enabled: true
+mongodb:
+  enabled: true
