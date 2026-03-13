@@ -1,7 +1,0 @@
-defaultNamespace: n8n-mix
-helm:
-  releaseName: n8n-mix
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
