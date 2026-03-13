@@ -1,0 +1,32 @@
+apiVersion: v2
+name: clearml
+description: MLOps platform
+type: application
+version: 7.14.8
+appVersion: "1.0"
+maintainers:
+  - name: "@alessandro-festa"
+keywords:
+  - ai
+  - ml
+  - llm
+  - suse-ai-factory
+
+dependencies:
+  - name: "clearml"
+    version: "7.14.7"
+    repository: "oci://https://github.com/clearml/clearml-helm-charts/charts/clearml"
+    condition: "clearml.enabled"
+  - name: "redis"
+    version: ""17.8.3""
+    repository: ""https://charts.bitnami.com/bitnami""
+    condition: "redis.enabled"
+  - name: "mongodb"
+    version: ""13.18.5""
+    repository: ""https://charts.bitnami.com/bitnami""
+    condition: "mongodb.enabled"
+  - name: "elasticsearch"
+    version: ""7.17.3""
+    repository: ""https://helm.elastic.co""
+    condition: "elasticsearch.enabled"
+
