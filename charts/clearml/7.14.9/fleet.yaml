@@ -1,7 +1,0 @@
-defaultNamespace: clearml
-helm:
-  releaseName: clearml
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
