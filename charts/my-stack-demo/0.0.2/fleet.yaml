@@ -1,0 +1,7 @@
+defaultNamespace: my-stack-demo
+helm:
+  releaseName: my-stack-demo
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
