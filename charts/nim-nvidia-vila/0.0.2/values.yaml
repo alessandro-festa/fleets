@@ -1,0 +1,145 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+vila:
+  enabled: true
+  affinity: {}
+  containerSecurityContext: {}
+  customCommand: []
+  customArgs: []
+  env: []
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  image:
+    repository: nvcr.io/nim/nvidia/vila
+    pullPolicy: IfNotPresent
+    tag: latest
+  imagePullSecrets:
+    - name: ngc-registry-secret
+  initContainers:
+    ngcInit: {}
+    extraInit: []
+  healthPort: 8000
+  nodeSelector: {}
+  podAnnotations: {}
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  replicaCount: 1
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ''
+  statefulSet:
+    enabled: true
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    metrics: []
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            serviceType: openai
+    tls: []
+  livenessProbe:
+    enabled: true
+    method: http
+    command:
+      - myscript.sh
+    path: /v1/health/live
+    initialDelaySeconds: 15
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    path: /v1/health/ready
+    initialDelaySeconds: 15
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  startupProbe:
+    enabled: true
+    path: /v1/health/ready
+    initialDelaySeconds: 40
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 180
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+  model:
+    nimCache: /model-store
+    name: nvidia/nemoretriever-parse
+    ngcAPISecret: ngc-api
+    ngcAPIKey: ''
+    openaiPort: 8000
+    labels: {}
+    jsonLogging: true
+    logLevel: INFO
+    legacyCompat: false
+    numGpus: 1
+    subPath: model-store
+    modelStorePath: ''
+  proxyCA:
+    enabled: false
+    secretName: ''
+    keyName: ''
+  persistence:
+    enabled: false
+    existingClaim: ''
+    storageClass: ''
+    accessMode: ReadWriteOnce
+    stsPersistentVolumeClaimRetentionPolicy:
+      whenDeleted: Retain
+      whenScaled: Retain
+    size: 50Gi
+    annotations: {}
+  hostPath:
+    enabled: false
+    path: /model-store
+  nfs:
+    enabled: false
+    server: nfs-server.example.com
+    path: /exports
+    readOnly: false
+  service:
+    type: ClusterIP
+    openaiPort: 8000
+    annotations: {}
+    labels: {}
+    name: ''
+  multiNode:
+    clusterStartTimeout: 300
+    enabled: false
+    workers: 1
+    leaderWorkerSet:
+      enabled: true
+    mpiJob:
+      workerAnnotations: {}
+      launcherResources: {}
+    gpusPerNode: 1
+    optimized:
+      enabled: true

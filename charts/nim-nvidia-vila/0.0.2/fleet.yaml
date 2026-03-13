@@ -1,0 +1,7 @@
+defaultNamespace: nim-nvidia-vila
+helm:
+  releaseName: nim-nvidia-vila
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
