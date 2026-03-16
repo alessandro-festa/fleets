@@ -11,4 +11,20 @@ keywords:
   - suse-ai-factory
 
 dependencies:
+  - name: "argo-workflows"
+    version: "*"
+    repository: "oci://dp.apps.rancher.io/charts/argo-workflows"
+    condition: "argo-workflows.enabled"
+  - name: "nemo-guardrails"
+    version: "25.6.0"
+    repository: "https://helm.ngc.nvidia.com/nvidia/nemo-microservices/charts/nemo-guardrails-25.6.0.tgz"
+    condition: "nemo-guardrails.enabled"
+  - name: "vllm"
+    version: "*"
+    repository: "oci://dp.apps.rancher.io/charts/vllm"
+    condition: "vllm.enabled"
+  - name: "opentelemetry-collector"
+    version: "*"
+    repository: "oci://dp.apps.rancher.io/charts/opentelemetry-collector"
+    condition: "opentelemetry-collector.enabled"
 
