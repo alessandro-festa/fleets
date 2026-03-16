@@ -1,0 +1,14 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: build-your-own
+  version: 1.0.1
+criteria:
+  service: kubernetes
+  accelerator: any
+  intent: mixed
+  os: any
+componentRefs:
+
+deploymentOrder:
+
