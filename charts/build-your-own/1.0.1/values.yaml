@@ -1,0 +1,7 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - name: ngc-registry-secret
+  namespace: ''
+apache-airflow:
+  enabled: true

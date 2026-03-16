@@ -1,0 +1,20 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: build-your-own
+  version: 1.0.1
+criteria:
+  service: kubernetes
+  accelerator: any
+  intent: mixed
+  os: any
+  platform: any
+componentRefs:
+  - name: apache-airflow
+    namespace: build-your-own
+    chart: apache-airflow
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/apache-airflow
+    version: *
+deploymentOrder:
+  - apache-airflow
