@@ -9,12 +9,6 @@ criteria:
   intent: mixed
   os: any
 componentRefs:
-  - name: apache-kafka
-    namespace: build-your-own
-    chart: apache-kafka
-    type: Helm
-    source: oci://dp.apps.rancher.io/charts/apache-kafka
-    version: *
   - name: argo-workflows
     namespace: build-your-own
     chart: argo-workflows
@@ -22,5 +16,4 @@ componentRefs:
     source: oci://dp.apps.rancher.io/charts/argo-workflows
     version: *
 deploymentOrder:
-  - apache-kafka
   - argo-workflows
