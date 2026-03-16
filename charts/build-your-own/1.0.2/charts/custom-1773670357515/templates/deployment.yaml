@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "generic.fullname" . }}
+  labels:
+    {{- include "generic.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "generic.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "generic.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if and .Values.global .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.global.imagePullSecrets }}
+        {{- if kindIs "string" . }}
+        - name: {{ . }}
+        {{- else }}
+        - name: {{ .name }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: container
+          image: {{ printf "%s:%s" (.Values.image.repository | default "image-not-set") (.Values.image.tag | default "latest") | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ if .Values.service }}{{ .Values.service.port | default 80 }}{{ else }}80{{ end }}
+              protocol: TCP
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.env }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          {{- end }}

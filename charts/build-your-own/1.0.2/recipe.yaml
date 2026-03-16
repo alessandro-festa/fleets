@@ -1,0 +1,40 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: build-your-own
+  version: 1.0.2
+criteria:
+  service: kubernetes
+  accelerator: any
+  intent: mixed
+  os: any
+componentRefs:
+  - name: argo-workflows
+    namespace: build-your-own
+    chart: argo-workflows
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/argo-workflows
+    version: *
+  - name: ollama
+    namespace: build-your-own
+    chart: ollama
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/ollama
+    version: *
+  - name: opentelemetry-collector
+    namespace: build-your-own
+    chart: opentelemetry-collector
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/opentelemetry-collector
+    version: *
+  - name: custom-1773670357515
+    namespace: build-your-own
+    chart: custom-1773670357515
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/custom-1773670357515
+    version: *
+deploymentOrder:
+  - argo-workflows
+  - ollama
+  - opentelemetry-collector
+  - custom-1773670357515
