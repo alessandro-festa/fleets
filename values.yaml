@@ -1,0 +1,1318 @@
+global:
+  imagePullSecrets:
+    - application-collection
+  namespace: ''
+apache-kafka:
+  enabled: true
+  global:
+    storageClassName: ''
+    imageRegistry: ''
+    imagePullSecrets: []
+  commonAnnotations: {}
+  commonLabels: {}
+  fullnameOverride: ''
+  nameOverride: ''
+  extraManifests: []
+  clusterDomain: cluster.local
+  images:
+    controller:
+      registry: dp.apps.rancher.io
+      repository: containers/apache-kafka
+      tag: 4.1.1-2.37
+      digest: ''
+      pullPolicy: IfNotPresent
+    broker:
+      registry: dp.apps.rancher.io
+      repository: containers/apache-kafka
+      tag: 4.1.1-2.37
+      digest: ''
+      pullPolicy: IfNotPresent
+    volume-permissions:
+      registry: dp.apps.rancher.io
+      repository: containers/bci-busybox
+      tag: 15.7-18.1
+      digest: ''
+      pullPolicy: IfNotPresent
+  containerPorts:
+    client: 9092
+    controller: 9093
+    interbroker: 9094
+    '*': null
+  cluster:
+    listeners:
+      client:
+        name: CLIENT
+        protocol: SASL_PLAINTEXT
+        saslMechanism: PLAIN
+      controller:
+        name: CONTROLLER
+        protocol: SASL_PLAINTEXT
+        saslMechanism: PLAIN
+      interbroker:
+        name: INTERBROKER
+        protocol: SASL_PLAINTEXT
+        saslMechanism: PLAIN
+      '*': null
+    nodeCount:
+      controller: 3
+      broker: 3
+    controllerBrokerRole: true
+    minBrokerID: 1000
+    numPartitions: 1
+    offsetsTopicReplicationFactor: 2
+    disksPerBroker: 1
+    clusterID: ''
+    clusterIDKey: ''
+    clusterConfigMap: ''
+    configMap:
+      enabled: '{{ empty .Values.cluster.clusterConfigMap }}'
+      '{{ default "clusterID" .Values.cluster.clusterIDKey }}': '{{ default (randAlphaNum 16) .Values.cluster.clusterID }}'
+      '*': null
+  auth:
+    enabled: true
+    sasl:
+      enabledMechanisms: PLAIN
+      gssapi:
+        kerberosServiceName: ''
+        existingSecret: ''
+      plain:
+        interbroker:
+          username: admin
+          password: admin_password
+          existingSecret: ''
+          usernameKey: ''
+          passwordKey: ''
+          secret:
+            enabled: '{{ empty .Values.auth.sasl.plain.interbroker.existingSecret }}'
+            '{{ default "interbroker-user" .Values.auth.sasl.plain.interbroker.usernameKey }}': '{{ coalesce .Values.auth.sasl.plain.interbrokerUsername .Values.auth.sasl.plain.interbroker.username }}'
+            '{{ default "interbroker-password" .Values.auth.sasl.plain.interbroker.passwordKey }}': >-
+              {{ default (randAlphaNum 16) (coalesce .Values.auth.sasl.plain.interbrokerPassword
+              .Values.auth.sasl.plain.interbroker.password) }}
+        users:
+          - username: user_test
+            password: password_test
+        usersExistingSecret: ''
+      oauthbearer:
+        jwksEndpointUrl: ''
+        tokenEndpointUrl: ''
+        unsecuredLoginClaimSub: ''
+  tls:
+    enabled: false
+    format: JKS
+    clientAuth: none
+    hostnameVerification: true
+    existingSecret: ''
+    keystorePassword: ''
+    truststoreFilename: ''
+    truststorePassword: ''
+    caCertFilename: ''
+    keystoreKeyPassword: ''
+  controller:
+    heapOpts: '-Xms512M -Xmx512M'
+    logDir: '{{ .Values.controller.podTemplates.containers.controller.volumeMounts.logs.mountPath }}'
+    logSubDir: ''
+    configurationFile: server.properties
+    configuration: ''
+    existingConfigMap: ''
+    configMap:
+      enabled: '{{ and (not .Values.controller.existingConfigMap) (not (empty .Values.controller.configuration)) }}'
+      '{{ .Values.controller.configurationFile }}': >-
+        {{ tpl (include "application-collection.apache-kafka.configuration" (dict "values"
+        .Values.controller.configuration "context" $)) . }}
+      '*': null
+    statefulset:
+      enabled: true
+      serviceName: ''
+      template: {}
+      replicas: ''
+      updateStrategy:
+        type: RollingUpdate
+      podManagementPolicy: Parallel
+      persistentVolumeClaimRetentionPolicy: {}
+      volumeClaimTemplates:
+        data:
+          enabled: '{{ .Values.persistence.enabled }}'
+        logs:
+          enabled: '{{ .Values.persistence.enabled }}'
+          volumeCount: '{{ int .Values.cluster.disksPerBroker }}'
+      '*': null
+    podTemplates:
+      annotations:
+        kubectl.kubernetes.io/default-container: controller
+      labels: {}
+      terminationGracePeriodSeconds: 120
+      initContainers:
+        volume-permissions:
+          enabled: false
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /bin/sh
+            - '-ec'
+            - >
+              chown -R {{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}
+              /mnt/kafka/data
+          args: []
+          env: {}
+          envFrom: []
+          volumeMounts:
+            data:
+              enabled: true
+              mountPath: /mnt/kafka/data
+          resources: {}
+          securityContext:
+            runAsUser: 0
+          '*': null
+      containers:
+        controller:
+          enabled: true
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /bin/bash
+            - '-ec'
+            - |
+              exec /mnt/kafka/scripts/apache-kafka-entrypoint.sh
+          args: []
+          ports: {}
+          env:
+            _KAFKA_INTERBROKER_USER:
+              enabled: '{{ and .Values.auth.enabled (contains "PLAIN" .Values.auth.sasl.enabledMechanisms) }}'
+              valueFrom:
+                secretKeyRef:
+                  name: >-
+                    {{ coalesce .Values.auth.sasl.plain.interbroker.existingSecret (include
+                    "application-collection.fullName" (dict "suffix" "auth" "context" $)) }}
+                  key: '{{ default "interbroker-user" .Values.auth.sasl.plain.interbroker.usernameKey }}'
+            _KAFKA_INTERBROKER_PASSWORD:
+              enabled: '{{ and .Values.auth.enabled (contains "PLAIN" .Values.auth.sasl.enabledMechanisms) }}'
+              valueFrom:
+                secretKeyRef:
+                  name: >-
+                    {{ coalesce .Values.auth.sasl.plain.interbroker.existingSecret (include
+                    "application-collection.fullName" (dict "suffix" "auth" "context" $)) }}
+                  key: '{{ default "interbroker-password" .Values.auth.sasl.plain.interbroker.passwordKey }}'
+            _KAFKA_POD_HOSTNAME:
+              enabled: true
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            _KAFKA__HEALTHCHECK_PROPERTIES_FILE: /usr/share/kafka/config/healthcheck.properties
+            _KAFKA_HEALTHCHECK_SECURITY_PROTOCOL: '{{ .Values.cluster.listeners.client.protocol }}'
+            _KAFKA_HEALTHCHECK_SASL_JAAS_CONFIG:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.client "listenerType" "controller_healthcheck" "nodeType" "controller"
+                "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            _KAFKA_HEALTHCHECK_SASL_MECHANISM:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: '{{ .Values.cluster.listeners.client.saslMechanism }}'
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ printf "%s/%s.keystore.jks"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)" }}
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_PASSWORD:
+              enabled: >-
+                {{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.keystorePassword)) (not
+                (eq .Values.tls.clientAuth "none")) }}
+              value: '{{ .Values.tls.keystorePassword }}'
+            _KAFKA_HEALTHCHECK_SSL_TRUSTSTORE_LOCATION:
+              enabled: '{{ .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s" .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                .Values.tls.truststoreFilename }}
+            _KAFKA_HEALTHCHECK_SSL_TRUSTSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.truststorePassword)) }}'
+              value: '{{ .Values.tls.truststorePassword }}'
+            _KAFKA_HEALTHCHECK_SSL_KEY_PASSWORD:
+              enabled: >-
+                {{ and .Values.tls.enabled (not (empty .Values.tls.keystoreKeyPassword)) (not (eq .Values.tls.clientAuth
+                "none")) }}
+              value: '{{ .Values.tls.keystoreKeyPassword }}'
+            _KAFKA_HEALTHCHECK_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM:
+              enabled: '{{ and .Values.tls.enabled (not .Values.tls.hostnameVerification) }}'
+              value: ''
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_KEY:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.key"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)") "context" $) }}
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_CERTIFICATE_CHAIN:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.crt"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)") "context" $) }}
+            _KAFKA_HEALTHCHECK_SSL_TRUSTORE_CERTIFICATES:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath (ternary (printf
+                "%s.crt" "$(_KAFKA_POD_HOSTNAME)") .Values.tls.caCertFilename (empty .Values.tls.caCertFilename)))
+                "context" $) }}
+            KAFKA_PROCESS_ROLES: '{{- ternary "broker,controller" "controller" .Values.cluster.controllerBrokerRole }}'
+            KAFKA_CONTROLLER_QUORUM_VOTERS: '{{ include "application-collection.apache-kafka.quorumVoters" . }}'
+            KAFKA_LISTENERS: >-
+              {{ ternary (include "application-collection.apache-kafka.listeners" (dict "listeners" (list "client"
+              "controller" "interbroker") "nodeType" "controller" "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $))
+              (include "application-collection.apache-kafka.listeners" (dict "listeners" (list "controller") "nodeType"
+              "controller" "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $)) .Values.cluster.controllerBrokerRole }}
+            KAFKA_ADVERTISED_LISTENERS:
+              enabled: '{{ .Values.cluster.controllerBrokerRole }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.listeners" (dict "listeners" (list "client"
+                "interbroker") "nodeType" "controller" "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            KAFKA_CONTROLLER_LISTENER_NAMES: '{{ .Values.cluster.listeners.controller.name }}'
+            KAFKA_INTER_BROKER_LISTENER_NAME:
+              enabled: '{{ .Values.cluster.controllerBrokerRole }}'
+              value: '{{ .Values.cluster.listeners.interbroker.name }}'
+            KAFKA_LOG_DIRS: >-
+              {{ include "application-collection.apache-kafka.logDirs" (dict "logDir" .Values.controller.logDir
+              "logSubDir" .Values.controller.logSubDir "context" $) }}
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:
+              enabled: '{{ not (empty .Values.cluster.offsetsTopicReplicationFactor) }}'
+              value: '{{ int .Values.cluster.offsetsTopicReplicationFactor }}'
+            KAFKA_NUM_PARTITIONS:
+              enabled: '{{ not (empty .Values.cluster.numPartitions) }}'
+              value: '{{ int .Values.cluster.numPartitions }}'
+            KAFKA_HEAP_OPTS:
+              enabled: '{{ not (empty .Values.controller.heapOpts) }}'
+              value: '{{ .Values.controller.heapOpts }}'
+            CLUSTER_ID:
+              enabled: true
+              valueFrom:
+                configMapKeyRef:
+                  name: >-
+                    {{ coalesce .Values.cluster.clusterConfigMap (include "application-collection.fullName" (dict
+                    "suffix" "cluster" "context" $)) }}
+                  key: '{{ default "clusterID" .Values.cluster.clusterIDKey }}'
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: '{{ include "application-collection.apache-kafka.protocolMap" . }}'
+            KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.controller.protocol) }}'
+              value: '{{ .Values.cluster.listeners.controller.saslMechanism }}'
+            KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: '{{ .Values.cluster.listeners.interbroker.saslMechanism }}'
+            KAFKA_SASL_ENABLED_MECHANISMS:
+              enabled: '{{ .Values.auth.enabled }}'
+              value: '{{ .Values.auth.sasl.enabledMechanisms }}'
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.client "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.client "listenerType" "client" "nodeType" "controller" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.controller "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.controller.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.controller "listenerType" "controller" "nodeType" "controller" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.interbroker "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.interbroker "listenerType" "interbroker" "nodeType" "controller" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ printf "%s_%s_%s" "KAFKA_LISTENER_NAME" .Values.cluster.listeners.client.name "SASL_ENABLED_MECHANISMS" }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: '{{ .Values.cluster.listeners.client.saslMechanism }}'
+            '{{ printf "%s_%s_%s" "KAFKA_LISTENER_NAME" .Values.cluster.listeners.controller.name "SASL_ENABLED_MECHANISMS" }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.controller.protocol) }}'
+              value: '{{ .Values.cluster.listeners.controller.saslMechanism }}'
+            '{{ printf "%s_%s_%s" "KAFKA_LISTENER_NAME" .Values.cluster.listeners.interbroker.name "SASL_ENABLED_MECHANISMS" }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: '{{ .Values.cluster.listeners.interbroker.saslMechanism }}'
+            KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL:
+              enabled: '{{ and .Values.auth.enabled (contains "OAUTHBEARER" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ .Values.auth.sasl.oauthbearer.jwksEndpointUrl }}'
+            KAFKA_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL:
+              enabled: '{{ and .Values.auth.enabled (contains "OAUTHBEARER" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ .Values.auth.sasl.oauthbearer.tokenEndpointUrl }}'
+            KAFKA_SASL_KERBEROS_SERVICE_NAME:
+              enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ include "application-collection.render.serviceName" (dict "nodeType" "controller" "context" $) }}'
+            KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM:
+              enabled: '{{ and .Values.tls.enabled (not .Values.tls.hostnameVerification) }}'
+              value: ''
+            KAFKA_SSL_CLIENT_AUTH:
+              enabled: '{{ .Values.tls.enabled }}'
+              value: '{{ .Values.tls.clientAuth }}'
+            KAFKA_SSL_KEYSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s.keystore.jks"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)" }}
+            KAFKA_SSL_KEYSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.keystorePassword)) }}'
+              value: '{{ .Values.tls.keystorePassword }}'
+            KAFKA_SSL_TRUSTSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s" .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                .Values.tls.truststoreFilename }}
+            KAFKA_SSL_TRUSTSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.truststorePassword)) }}'
+              value: '{{ .Values.tls.truststorePassword }}'
+            KAFKA_SSL_KEY_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (not (empty .Values.tls.keystoreKeyPassword)) }}'
+              value: '{{ .Values.tls.keystoreKeyPassword }}'
+            KAFKA_SSL_KEYSTORE_KEY:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.key"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)") "context" $) }}
+            KAFKA_SSL_KEYSTORE_CERTIFICATE_CHAIN:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.crt"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath
+                "$(_KAFKA_POD_HOSTNAME)") "context" $) }}
+            KAFKA_SSL_TRUSTORE_CERTIFICATES:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s"
+                .Values.controller.podTemplates.containers.controller.volumeMounts.certs.mountPath (ternary (printf
+                "%s.crt" "$(_KAFKA_POD_HOSTNAME)") .Values.tls.caCertFilename (empty .Values.tls.caCertFilename)))
+                "context" $) }}
+          envFrom:
+            - secretRef:
+                name: >-
+                  {{ ternary (include "application-collection.fullName" (dict "suffix" "users" "context" $))
+                  .Values.auth.sasl.plain.usersExistingSecret (empty .Values.auth.sasl.plain.usersExistingSecret) }}
+          volumeMounts:
+            conf:
+              enabled: >-
+                {{ eq (include "application-collection.render.boolean" (dict "template"
+                .Values.controller.configMap.enabled "context" $)) "true" }}
+              mountPath: /mnt/kafka/config
+              readOnly: true
+            data:
+              enabled: true
+              mountPath: /mnt/kafka/data
+            scripts:
+              enabled: true
+              mountPath: /mnt/kafka/scripts
+              readOnly: true
+            certs:
+              enabled: '{{ .Values.tls.enabled }}'
+              mountPath: /mnt/kafka/certs
+              readOnly: true
+            sasl:
+              enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+              mountPath: /mnt/kafka/sasl
+              readOnly: true
+            logs:
+              enabled: true
+              volumeCount: '{{ .Values.cluster.disksPerBroker }}'
+              mountPath: /mnt/kafka/logs
+          resources: {}
+          securityContext: {}
+          livenessProbe:
+            enabled: true
+            tcpSocket:
+              port: controller
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          readinessProbe:
+            enabled: true
+            exec:
+              command:
+                - /mnt/kafka/scripts/apache-kafka-readiness-check.sh
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          startupProbe:
+            enabled: false
+            tcpSocket:
+              port: controller
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 10
+            successThreshold: 1
+          '*': null
+      imagePullSecrets: []
+      volumes:
+        conf:
+          enabled: >-
+            {{ eq (include "application-collection.render.boolean" (dict "template" .Values.controller.configMap.enabled
+            "context" $)) "true" }}
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "controller" "context" $) }}'
+        data:
+          enabled: '{{ and (not .Values.controller.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+          emptyDir:
+            medium: ''
+        scripts:
+          enabled: true
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "controller-scripts" "context" $) }}'
+            defaultMode: 360
+        certs:
+          enabled: '{{ .Values.tls.enabled }}'
+          secret:
+            secretName: '{{ tpl .Values.tls.existingSecret . }}'
+            defaultMode: 256
+        sasl:
+          enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+          secret:
+            secretName: '{{ tpl .Values.auth.sasl.gssapi.existingSecret . }}'
+            defaultMode: 256
+        logs:
+          enabled: '{{ and (not .Values.controller.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+          volumeCount: '{{ int .Values.cluster.disksPerBroker }}'
+          emptyDir:
+            medium: ''
+      serviceAccountName: ''
+      securityContext: {}
+      '*': null
+    service:
+      enabled: true
+      annotations: {}
+      type: ClusterIP
+      nodePorts:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      ports:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      '*': null
+    headlessService:
+      annotations: {}
+      type: ClusterIP
+      clusterIP: None
+      publishNotReadyAddresses: true
+      ports:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      '*': null
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: ''
+      maxUnavailable: ''
+    networkPolicy:
+      enabled: false
+      allowExternalConnections: true
+      egress:
+        enabled: true
+        allowExternalConnections: true
+        extraRules: []
+        namespaceLabels: {}
+        podLabels: {}
+        ports:
+          client: ''
+          controller: ''
+          interbroker: ''
+          '*': null
+      ingress:
+        enabled: true
+        allowExternalConnections: true
+        namespaceLabels: {}
+        podLabels: {}
+        extraRules: []
+        ports:
+          client: ''
+          controller: ''
+          interbroker: ''
+          '*': null
+  broker:
+    enabled: false
+    heapOpts: '-Xms512M -Xmx512M'
+    logDir: '{{ .Values.broker.podTemplates.containers.broker.volumeMounts.logs.mountPath }}'
+    logSubDir: ''
+    configurationFile: server.properties
+    configuration: ''
+    existingConfigMap: ''
+    configMap:
+      enabled: '{{ and (not .Values.broker.existingConfigMap) (not (empty .Values.broker.configuration)) }}'
+      '{{ .Values.broker.configurationFile }}': >-
+        {{ tpl (include "application-collection.apache-kafka.configuration" (dict "values" .Values.broker.configuration
+        "context" $)) . }}
+      '*': null
+    statefulset:
+      enabled: true
+      serviceName: ''
+      template: {}
+      replicas: ''
+      updateStrategy:
+        type: RollingUpdate
+      podManagementPolicy: Parallel
+      persistentVolumeClaimRetentionPolicy: {}
+      volumeClaimTemplates:
+        data:
+          enabled: '{{ .Values.persistence.enabled }}'
+        logs:
+          enabled: '{{ .Values.persistence.enabled }}'
+          volumeCount: '{{ int .Values.cluster.disksPerBroker }}'
+      '*': null
+    podTemplates:
+      annotations:
+        kubectl.kubernetes.io/default-container: broker
+      labels: {}
+      terminationGracePeriodSeconds: 120
+      initContainers:
+        volume-permissions:
+          enabled: false
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /bin/sh
+            - '-ec'
+            - >
+              chown -R {{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}
+              /mnt/kafka/data
+          args: []
+          env: {}
+          envFrom: []
+          volumeMounts:
+            data:
+              enabled: true
+              mountPath: /mnt/kafka/data
+          resources: {}
+          securityContext:
+            runAsUser: 0
+          '*': null
+      containers:
+        broker:
+          enabled: true
+          image: ''
+          imagePullPolicy: ''
+          command:
+            - /bin/bash
+            - '-ec'
+            - |
+              exec /mnt/kafka/scripts/apache-kafka-entrypoint.sh
+          args: []
+          ports: {}
+          env:
+            _KAFKA_INTERBROKER_USER:
+              enabled: '{{ and .Values.auth.enabled (contains "PLAIN" .Values.auth.sasl.enabledMechanisms) }}'
+              valueFrom:
+                secretKeyRef:
+                  name: >-
+                    {{ coalesce .Values.auth.sasl.plain.interbroker.existingSecret (include
+                    "application-collection.fullName" (dict "suffix" "auth" "context" $)) }}
+                  key: '{{ default "interbroker-user" .Values.auth.sasl.plain.interbroker.usernameKey }}'
+            _KAFKA_INTERBROKER_PASSWORD:
+              enabled: '{{ and .Values.auth.enabled (contains "PLAIN" .Values.auth.sasl.enabledMechanisms) }}'
+              valueFrom:
+                secretKeyRef:
+                  name: >-
+                    {{ coalesce .Values.auth.sasl.plain.interbroker.existingSecret (include
+                    "application-collection.fullName" (dict "suffix" "auth" "context" $)) }}
+                  key: '{{ default "interbroker-password" .Values.auth.sasl.plain.interbroker.passwordKey }}'
+            _KAFKA_POD_HOSTNAME:
+              enabled: true
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            _KAFKA_MIN_BROKER_ID: '{{ default 0 .Values.cluster.minBrokerID }}'
+            _KAFKA__HEALTHCHECK_PROPERTIES_FILE: /usr/share/kafka/config/healthcheck.properties
+            _KAFKA_HEALTHCHECK_SECURITY_PROTOCOL: '{{ .Values.cluster.listeners.client.protocol }}'
+            _KAFKA_HEALTHCHECK_SASL_JAAS_CONFIG:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.client "listenerType" "broker_healthcheck" "nodeType" "broker" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            _KAFKA_HEALTHCHECK_SASL_MECHANISM:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: '{{ .Values.cluster.listeners.client.saslMechanism }}'
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ printf "%s/%s.keystore.jks"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)" }}
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_PASSWORD:
+              enabled: >-
+                {{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.keystorePassword)) (not
+                (eq .Values.tls.clientAuth "none")) }}
+              value: '{{ .Values.tls.keystorePassword }}'
+            _KAFKA_HEALTHCHECK_SSL_TRUSTSTORE_LOCATION:
+              enabled: '{{ .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s" .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath
+                .Values.tls.truststoreFilename }}
+            _KAFKA_HEALTHCHECK_SSL_TRUSTSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.truststorePassword)) }}'
+              value: '{{ .Values.tls.truststorePassword }}'
+            _KAFKA_HEALTHCHECK_SSL_KEY_PASSWORD:
+              enabled: >-
+                {{ and .Values.tls.enabled (not (empty .Values.tls.keystoreKeyPassword)) (not (eq .Values.tls.clientAuth
+                "none")) }}
+              value: '{{ .Values.tls.keystoreKeyPassword }}'
+            _KAFKA_HEALTHCHECK_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM:
+              enabled: '{{ and .Values.tls.enabled (not .Values.tls.hostnameVerification) }}'
+              value: ''
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_KEY:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.key"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)")
+                "context" $) }}
+            _KAFKA_HEALTHCHECK_SSL_KEYSTORE_CERTIFICATE_CHAIN:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.crt"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)")
+                "context" $) }}
+            _KAFKA_HEALTHCHECK_SSL_TRUSTORE_CERTIFICATES:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath (ternary (printf "%s.crt"
+                "$(_KAFKA_POD_HOSTNAME)") .Values.tls.caCertFilename (empty .Values.tls.caCertFilename))) "context" $)
+                }}
+            KAFKA_PROCESS_ROLES: broker
+            KAFKA_CONTROLLER_QUORUM_VOTERS: '{{ include "application-collection.apache-kafka.quorumVoters" . }}'
+            KAFKA_LISTENERS: >-
+              {{ include "application-collection.apache-kafka.listeners" (dict "listeners" (list "client" "interbroker")
+              "nodeType" "broker" "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            KAFKA_ADVERTISED_LISTENERS: >-
+              {{ include "application-collection.apache-kafka.listeners" (dict "listeners" (list "client" "interbroker")
+              "nodeType" "broker" "hostname" "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            KAFKA_CONTROLLER_LISTENER_NAMES: '{{ .Values.cluster.listeners.controller.name }}'
+            KAFKA_INTER_BROKER_LISTENER_NAME: '{{ .Values.cluster.listeners.interbroker.name }}'
+            KAFKA_LOG_DIRS: >-
+              {{ include "application-collection.apache-kafka.logDirs" (dict "logDir" .Values.broker.logDir "logSubDir"
+              .Values.broker.logSubDir "context" $) }}
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:
+              enabled: '{{ not (empty .Values.cluster.offsetsTopicReplicationFactor) }}'
+              value: '{{ int .Values.cluster.offsetsTopicReplicationFactor }}'
+            KAFKA_NUM_PARTITIONS:
+              enabled: '{{ not (empty .Values.cluster.numPartitions) }}'
+              value: '{{ int .Values.cluster.numPartitions }}'
+            KAFKA_HEAP_OPTS:
+              enabled: '{{ not (empty .Values.broker.heapOpts) }}'
+              value: '{{ .Values.broker.heapOpts }}'
+            CLUSTER_ID:
+              enabled: true
+              valueFrom:
+                configMapKeyRef:
+                  name: >-
+                    {{ coalesce .Values.cluster.clusterConfigMap (include "application-collection.fullName" (dict
+                    "suffix" "cluster" "context" $)) }}
+                  key: '{{ default "clusterID" .Values.cluster.clusterIDKey }}'
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: '{{ include "application-collection.apache-kafka.protocolMap" . }}'
+            KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.controller.protocol) }}'
+              value: '{{ .Values.cluster.listeners.controller.saslMechanism }}'
+            KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL:
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: '{{ .Values.cluster.listeners.interbroker.saslMechanism }}'
+            KAFKA_SASL_ENABLED_MECHANISMS:
+              enabled: '{{ .Values.auth.enabled }}'
+              value: '{{ .Values.auth.sasl.enabledMechanisms }}'
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.client "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.client "listenerType" "client" "nodeType" "broker" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.controller "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.controller.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.controller "listenerType" "controller" "nodeType" "broker" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ include "application-collection.apache-kafka.jaasConfigKey" (dict "listener" .Values.cluster.listeners.interbroker "context" $) }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.jaasConfigValue" (dict "listener"
+                .Values.cluster.listeners.interbroker "listenerType" "interbroker" "nodeType" "broker" "hostname"
+                "$(_KAFKA_POD_HOSTNAME)" "context" $) }}
+            '{{ printf "%s_%s_%s" "KAFKA_LISTENER_NAME" .Values.cluster.listeners.client.name "SASL_ENABLED_MECHANISMS" }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.client.protocol) }}'
+              value: '{{ .Values.cluster.listeners.client.saslMechanism }}'
+            '{{ printf "%s_%s_%s" "KAFKA_LISTENER_NAME" .Values.cluster.listeners.interbroker.name "SASL_ENABLED_MECHANISMS" }}':
+              enabled: '{{ and .Values.auth.enabled (contains "SASL" .Values.cluster.listeners.interbroker.protocol) }}'
+              value: '{{ .Values.cluster.listeners.interbroker.saslMechanism }}'
+            KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL:
+              enabled: '{{ and .Values.auth.enabled (contains "OAUTHBEARER" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ .Values.auth.sasl.oauthbearer.jwksEndpointUrl }}'
+            KAFKA_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL:
+              enabled: '{{ and .Values.auth.enabled (contains "OAUTHBEARER" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ .Values.auth.sasl.oauthbearer.tokenEndpointUrl }}'
+            KAFKA_SASL_KERBEROS_SERVICE_NAME:
+              enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+              value: '{{ include "application-collection.render.serviceName" (dict "nodeType" "broker" "context" $) }}'
+            KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM:
+              enabled: '{{ and .Values.tls.enabled (not .Values.tls.hostnameVerification) }}'
+              value: ''
+            KAFKA_SSL_CLIENT_AUTH:
+              enabled: '{{ .Values.tls.enabled }}'
+              value: '{{ .Values.tls.clientAuth }}'
+            KAFKA_SSL_KEYSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s.keystore.jks"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)" }}
+            KAFKA_SSL_KEYSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.keystorePassword)) }}'
+              value: '{{ .Values.tls.keystorePassword }}'
+            KAFKA_SSL_TRUSTSTORE_LOCATION:
+              enabled: '{{ and .Values.tls.enabled }}'
+              value: >-
+                {{ printf "%s/%s" .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath
+                .Values.tls.truststoreFilename }}
+            KAFKA_SSL_TRUSTSTORE_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "JKS") (not (empty .Values.tls.truststorePassword)) }}'
+              value: '{{ .Values.tls.truststorePassword }}'
+            KAFKA_SSL_KEY_PASSWORD:
+              enabled: '{{ and .Values.tls.enabled (not (empty .Values.tls.keystoreKeyPassword)) }}'
+              value: '{{ .Values.tls.keystoreKeyPassword }}'
+            KAFKA_SSL_KEYSTORE_KEY:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") (not (eq .Values.tls.clientAuth "none")) }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.key"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)")
+                "context" $) }}
+            KAFKA_SSL_KEYSTORE_CERTIFICATE_CHAIN:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s.crt"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath "$(_KAFKA_POD_HOSTNAME)")
+                "context" $) }}
+            KAFKA_SSL_TRUSTORE_CERTIFICATES:
+              enabled: '{{ and .Values.tls.enabled (eq .Values.tls.format "PEM") }}'
+              value: >-
+                {{ include "application-collection.apache-kafka.fileToMultilineString" (dict "file" (printf "%s/%s"
+                .Values.broker.podTemplates.containers.broker.volumeMounts.certs.mountPath (ternary (printf "%s.crt"
+                "$(_KAFKA_POD_HOSTNAME)") .Values.tls.caCertFilename (empty .Values.tls.caCertFilename))) "context" $)
+                }}
+          envFrom:
+            - secretRef:
+                name: >-
+                  {{ ternary (include "application-collection.fullName" (dict "suffix" "users" "context" $))
+                  .Values.auth.sasl.plain.usersExistingSecret (empty .Values.auth.sasl.plain.usersExistingSecret) }}
+          volumeMounts:
+            conf:
+              enabled: >-
+                {{ eq (include "application-collection.render.boolean" (dict "template" .Values.broker.configMap.enabled
+                "context" $)) "true" }}
+              mountPath: /mnt/kafka/config
+              readOnly: true
+            data:
+              enabled: true
+              mountPath: /mnt/kafka/data
+            scripts:
+              enabled: true
+              mountPath: /mnt/kafka/scripts
+              readOnly: true
+            certs:
+              enabled: '{{ .Values.tls.enabled }}'
+              mountPath: /mnt/kafka/certs
+              readOnly: true
+            sasl:
+              enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+              mountPath: /mnt/kafka/sasl
+              readOnly: true
+            logs:
+              enabled: true
+              volumeCount: '{{ .Values.cluster.disksPerBroker }}'
+              mountPath: /mnt/kafka/logs
+          resources: {}
+          securityContext: {}
+          livenessProbe:
+            enabled: true
+            tcpSocket:
+              port: client
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          readinessProbe:
+            enabled: true
+            exec:
+              command:
+                - /mnt/kafka/scripts/apache-kafka-readiness-check.sh
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+            successThreshold: 1
+          startupProbe:
+            enabled: false
+            tcpSocket:
+              port: client
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+            successThreshold: 1
+          '*': null
+      imagePullSecrets: []
+      volumes:
+        conf:
+          enabled: >-
+            {{ eq (include "application-collection.render.boolean" (dict "template" .Values.broker.configMap.enabled
+            "context" $)) "true" }}
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "broker" "context" $) }}'
+        data:
+          enabled: '{{ and (not .Values.broker.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+          emptyDir:
+            medium: ''
+        scripts:
+          enabled: true
+          configMap:
+            name: '{{ include "application-collection.fullName" (dict "suffix" "broker-scripts" "context" $) }}'
+            defaultMode: 360
+        certs:
+          enabled: '{{ .Values.tls.enabled }}'
+          secret:
+            secretName: '{{ tpl .Values.tls.existingSecret . }}'
+            defaultMode: 256
+        sasl:
+          enabled: '{{ and .Values.auth.enabled (contains "GSSAPI" .Values.auth.sasl.enabledMechanisms) }}'
+          secret:
+            secretName: '{{ tpl .Values.auth.sasl.gssapi.existingSecret . }}'
+            defaultMode: 256
+        logs:
+          enabled: '{{ and (not .Values.broker.statefulset.volumeClaimTemplates) (not .Values.persistence.enabled) }}'
+          volumeCount: '{{ int .Values.cluster.disksPerBroker }}'
+          emptyDir:
+            medium: ''
+      serviceAccountName: ''
+      securityContext: {}
+      '*': null
+    service:
+      enabled: true
+      annotations: {}
+      type: ClusterIP
+      nodePorts:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      ports:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      '*': null
+    headlessService:
+      annotations: {}
+      type: ClusterIP
+      clusterIP: None
+      publishNotReadyAddresses: true
+      ports:
+        client: ''
+        controller: ''
+        interbroker: ''
+        '*': null
+      '*': null
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: ''
+      maxUnavailable: ''
+    networkPolicy:
+      enabled: false
+      allowExternalConnections: true
+      egress:
+        enabled: true
+        allowExternalConnections: true
+        extraRules: []
+        namespaceLabels: {}
+        podLabels: {}
+        ports:
+          client: ''
+          controller: ''
+          interbroker: ''
+          '*': null
+      ingress:
+        enabled: true
+        allowExternalConnections: true
+        namespaceLabels: {}
+        podLabels: {}
+        extraRules: []
+        ports:
+          client: ''
+          controller: ''
+          interbroker: ''
+          '*': null
+  persistence:
+    enabled: true
+    annotations: {}
+    labels: {}
+    existingClaim: ''
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 8Gi
+    storageClassName: ''
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000
+  containerSecurityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccount:
+    enabled: false
+    annotations: {}
+    labels: {}
+    name: ''
+    automountServiceAccountToken: true
+    imagePullSecrets: []
+    secrets: []
+argo-workflows:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  images:
+    tag: ''
+    pullPolicy: Always
+    pullSecrets: []
+  crds:
+    install: true
+    keep: true
+    full: false
+    annotations: {}
+  createAggregateRoles: true
+  nameOverride: null
+  fullnameOverride: null
+  namespaceOverride: ''
+  commonLabels: {}
+  kubeVersionOverride: ''
+  apiVersionOverrides:
+    autoscaling: ''
+    cloudgoogle: ''
+    monitoring: ''
+  singleNamespace: false
+  workflow:
+    namespace: null
+    serviceAccount:
+      create: false
+      labels: {}
+      annotations: {}
+      name: argo-workflow
+      pullSecrets: []
+    rbac:
+      create: true
+      agentPermissions: false
+      artifactGC: false
+      serviceAccounts: []
+      rules: []
+  controller:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/workflow-controller
+      tag: 3.7.11-6.2
+    parallelism: null
+    resourceRateLimit: {}
+    rbac:
+      create: true
+      secretWhitelist: []
+      accessAllSecrets: false
+      writeConfigMaps: false
+    configMap:
+      create: true
+      name: ''
+      annotations: {}
+    namespaceParallelism: null
+    initialDelay: null
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    metricsConfig:
+      enabled: false
+      path: /metrics
+      interval: 30s
+      port: 9090
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      portName: metrics
+      servicePort: 8080
+      servicePortName: metrics
+      scheme: http
+      headlessService: false
+      honorLabels: false
+      relabelings: []
+      metricRelabelings: []
+      targetLabels: []
+      modifiers: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    persistence: {}
+    workflowDefaults: {}
+    workflowWorkers: null
+    workflowTTLWorkers: null
+    podCleanupWorkers: null
+    cronWorkflowWorkers: null
+    workflowRestrictions: {}
+    telemetryConfig:
+      enabled: false
+      path: /telemetry
+      interval: 30s
+      port: 8081
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      servicePort: 8081
+      servicePortName: telemetry
+      scheme: http
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+      namespace: ''
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    name: workflow-controller
+    workflowNamespaces:
+      - default
+    instanceID:
+      enabled: false
+      useReleaseName: false
+      explicitID: ''
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    serviceType: ClusterIP
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    livenessProbe:
+      httpGet:
+        port: 6060
+        path: /healthz
+      failureThreshold: 3
+      initialDelaySeconds: 90
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraEnv: []
+    extraArgs: []
+    volumeMounts: []
+    volumes: []
+    replicas: 1
+    revisionHistoryLimit: 10
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    links: []
+    columns: []
+    navColor: ''
+    clusterWorkflowTemplates:
+      enabled: true
+      serviceAccounts: []
+    extraContainers: []
+    extraInitContainers: []
+    retentionPolicy: {}
+    nodeEvents:
+      enabled: true
+    workflowEvents:
+      enabled: true
+    kubeConfig: {}
+    podGCGracePeriodSeconds: null
+    podGCDeleteDelayDuration: ''
+    synchronization: {}
+  mainContainer:
+    imagePullPolicy: ''
+    resources: {}
+    env: []
+    envFrom: []
+    securityContext: {}
+  executor:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argoexec
+      tag: 3.7.11-6.2
+      pullPolicy: ''
+    resources: {}
+    args: []
+    env: []
+    securityContext: {}
+  server:
+    enabled: true
+    baseHref: /
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argocli
+      tag: 3.7.11-6.2
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    rbac:
+      create: true
+    securityContext:
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    name: server
+    serviceType: ClusterIP
+    servicePort: 2746
+    serviceTargetPort: 2746
+    serviceNodePort: null
+    servicePortName: ''
+    hostAliases: []
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerIP: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    replicas: 1
+    revisionHistoryLimit: 10
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    secure: false
+    extraEnv: []
+    authMode: ''
+    authModes: []
+    extraArgs: []
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    tmpVolume:
+      emptyDir: {}
+    volumeMounts: []
+    volumes: []
+    ingress:
+      enabled: false
+      annotations: {}
+      labels: {}
+      ingressClassName: ''
+      hosts: []
+      paths:
+        - /
+      pathType: Prefix
+      extraPaths: []
+      tls: []
+    GKEbackendConfig:
+      enabled: false
+      spec: {}
+    GKEmanagedCertificate:
+      enabled: false
+      domains:
+        - argoworkflows.example.com
+    GKEfrontendConfig:
+      enabled: false
+      spec: {}
+    httproute:
+      enabled: false
+      labels: {}
+      annotations: {}
+      parentRefs: []
+      hostnames: []
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+    backendTLSPolicy:
+      enabled: false
+      labels: {}
+      annotations: {}
+      targetRefs: []
+      validation: {}
+    clusterWorkflowTemplates:
+      enabled: true
+      enableEditing: true
+    sso:
+      enabled: false
+      issuer: https://accounts.google.com
+      clientId:
+        name: argo-server-sso
+        key: client-id
+      clientSecret:
+        name: argo-server-sso
+        key: client-secret
+      redirectUrl: ''
+      rbac:
+        enabled: true
+        secretWhitelist: []
+      scopes: []
+      sessionExpiry: ''
+      issuerAlias: ''
+      customGroupClaimName: ''
+      userInfoPath: ''
+      insecureSkipVerify: false
+      filterGroupsRegex: []
+    extraContainers: []
+    extraInitContainers: []
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    livenessProbe:
+      enabled: false
+      httpGet:
+        port: 2746
+        path: /
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+  extraObjects: []
+  useStaticCredentials: true
+  artifactRepository:
+    archiveLogs: false
+    s3: {}
+    gcs: {}
+    azure: {}
+  customArtifactRepository: {}
+  artifactRepositoryRef: {}
+  emissary:
+    images: []
