@@ -4,10 +4,11 @@ metadata:
   name: build-your-own
   version: 1.0.2
 criteria:
-  service: kubernetes
-  accelerator: any
-  intent: mixed
-  os: any
+  service: self-managed
+  accelerator: h100
+  intent: inference
+  os: rhel
+  platform: dynamo
 componentRefs:
   - name: argo-workflows
     namespace: build-your-own
@@ -15,11 +16,11 @@ componentRefs:
     type: Helm
     source: oci://dp.apps.rancher.io/charts/argo-workflows
     version: *
-  - name: ollama
+  - name: vllm
     namespace: build-your-own
-    chart: ollama
+    chart: vllm
     type: Helm
-    source: oci://dp.apps.rancher.io/charts/ollama
+    source: oci://dp.apps.rancher.io/charts/vllm
     version: *
   - name: opentelemetry-collector
     namespace: build-your-own
@@ -27,14 +28,7 @@ componentRefs:
     type: Helm
     source: oci://dp.apps.rancher.io/charts/opentelemetry-collector
     version: *
-  - name: custom-1773670357515
-    namespace: build-your-own
-    chart: custom-1773670357515
-    type: Helm
-    source: oci://dp.apps.rancher.io/charts/custom-1773670357515
-    version: *
 deploymentOrder:
   - argo-workflows
-  - ollama
+  - vllm
   - opentelemetry-collector
-  - custom-1773670357515
