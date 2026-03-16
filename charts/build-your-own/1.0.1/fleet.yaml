@@ -1,7 +1,0 @@
-defaultNamespace: build-your-own
-helm:
-  releaseName: build-your-own
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
