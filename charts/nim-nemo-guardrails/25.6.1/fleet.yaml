@@ -1,0 +1,7 @@
+defaultNamespace: nim-nemo-guardrails
+helm:
+  releaseName: nim-nemo-guardrails
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
