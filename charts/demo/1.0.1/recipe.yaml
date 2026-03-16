@@ -1,0 +1,20 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: demo
+  version: 1.0.1
+criteria:
+  service: self-managed
+  accelerator: gb200
+  intent: inference
+  os: rhel
+  platform: dynamo
+componentRefs:
+  - name: argo-workflows
+    namespace: demo
+    chart: argo-workflows
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/argo-workflows
+    version: *
+deploymentOrder:
+  - argo-workflows

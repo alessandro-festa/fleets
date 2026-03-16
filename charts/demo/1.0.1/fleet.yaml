@@ -1,0 +1,7 @@
+defaultNamespace: demo
+helm:
+  releaseName: demo
+  chart: .
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
