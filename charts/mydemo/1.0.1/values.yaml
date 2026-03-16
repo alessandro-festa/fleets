@@ -1,0 +1,415 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+argo-workflows:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  images:
+    tag: ''
+    pullPolicy: Always
+    pullSecrets: []
+  crds:
+    install: true
+    keep: true
+    full: false
+    annotations: {}
+  createAggregateRoles: true
+  nameOverride: null
+  fullnameOverride: null
+  namespaceOverride: ''
+  commonLabels: {}
+  kubeVersionOverride: ''
+  apiVersionOverrides:
+    autoscaling: ''
+    cloudgoogle: ''
+    monitoring: ''
+  singleNamespace: false
+  workflow:
+    namespace: null
+    serviceAccount:
+      create: false
+      labels: {}
+      annotations: {}
+      name: argo-workflow
+      pullSecrets: []
+    rbac:
+      create: true
+      agentPermissions: false
+      artifactGC: false
+      serviceAccounts: []
+      rules: []
+  controller:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/workflow-controller
+      tag: 3.7.11-6.2
+    parallelism: null
+    resourceRateLimit: {}
+    rbac:
+      create: true
+      secretWhitelist: []
+      accessAllSecrets: false
+      writeConfigMaps: false
+    configMap:
+      create: true
+      name: ''
+      annotations: {}
+    namespaceParallelism: null
+    initialDelay: null
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    metricsConfig:
+      enabled: false
+      path: /metrics
+      interval: 30s
+      port: 9090
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      portName: metrics
+      servicePort: 8080
+      servicePortName: metrics
+      scheme: http
+      headlessService: false
+      honorLabels: false
+      relabelings: []
+      metricRelabelings: []
+      targetLabels: []
+      modifiers: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    persistence: {}
+    workflowDefaults: {}
+    workflowWorkers: null
+    workflowTTLWorkers: null
+    podCleanupWorkers: null
+    cronWorkflowWorkers: null
+    workflowRestrictions: {}
+    telemetryConfig:
+      enabled: false
+      path: /telemetry
+      interval: 30s
+      port: 8081
+      metricsTTL: ''
+      ignoreErrors: false
+      secure: false
+      servicePort: 8081
+      servicePortName: telemetry
+      scheme: http
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+      namespace: ''
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    name: workflow-controller
+    workflowNamespaces:
+      - default
+    instanceID:
+      enabled: false
+      useReleaseName: false
+      explicitID: ''
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    serviceType: ClusterIP
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    livenessProbe:
+      httpGet:
+        port: 6060
+        path: /healthz
+      failureThreshold: 3
+      initialDelaySeconds: 90
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraEnv: []
+    extraArgs: []
+    volumeMounts: []
+    volumes: []
+    replicas: 1
+    revisionHistoryLimit: 10
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    links: []
+    columns: []
+    navColor: ''
+    clusterWorkflowTemplates:
+      enabled: true
+      serviceAccounts: []
+    extraContainers: []
+    extraInitContainers: []
+    retentionPolicy: {}
+    nodeEvents:
+      enabled: true
+    workflowEvents:
+      enabled: true
+    kubeConfig: {}
+    podGCGracePeriodSeconds: null
+    podGCDeleteDelayDuration: ''
+    synchronization: {}
+  mainContainer:
+    imagePullPolicy: ''
+    resources: {}
+    env: []
+    envFrom: []
+    securityContext: {}
+  executor:
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argoexec
+      tag: 3.7.11-6.2
+      pullPolicy: ''
+    resources: {}
+    args: []
+    env: []
+    securityContext: {}
+  server:
+    enabled: true
+    baseHref: /
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argocli
+      tag: 3.7.11-6.2
+    deploymentAnnotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    rbac:
+      create: true
+    securityContext:
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    name: server
+    serviceType: ClusterIP
+    servicePort: 2746
+    serviceTargetPort: 2746
+    serviceNodePort: null
+    servicePortName: ''
+    hostAliases: []
+    serviceAccount:
+      create: true
+      name: ''
+      labels: {}
+      annotations: {}
+    serviceAnnotations: {}
+    serviceLabels: {}
+    loadBalancerClass: ''
+    loadBalancerIP: ''
+    loadBalancerSourceRanges: []
+    resources: {}
+    replicas: 1
+    revisionHistoryLimit: 10
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+    pdb:
+      enabled: false
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    secure: false
+    extraEnv: []
+    authMode: ''
+    authModes: []
+    extraArgs: []
+    logging:
+      level: info
+      globallevel: '0'
+      format: text
+    tmpVolume:
+      emptyDir: {}
+    volumeMounts: []
+    volumes: []
+    ingress:
+      enabled: false
+      annotations: {}
+      labels: {}
+      ingressClassName: ''
+      hosts: []
+      paths:
+        - /
+      pathType: Prefix
+      extraPaths: []
+      tls: []
+    GKEbackendConfig:
+      enabled: false
+      spec: {}
+    GKEmanagedCertificate:
+      enabled: false
+      domains:
+        - argoworkflows.example.com
+    GKEfrontendConfig:
+      enabled: false
+      spec: {}
+    httproute:
+      enabled: false
+      labels: {}
+      annotations: {}
+      parentRefs: []
+      hostnames: []
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+    backendTLSPolicy:
+      enabled: false
+      labels: {}
+      annotations: {}
+      targetRefs: []
+      validation: {}
+    clusterWorkflowTemplates:
+      enabled: true
+      enableEditing: true
+    sso:
+      enabled: false
+      issuer: https://accounts.google.com
+      clientId:
+        name: argo-server-sso
+        key: client-id
+      clientSecret:
+        name: argo-server-sso
+        key: client-secret
+      redirectUrl: ''
+      rbac:
+        enabled: true
+        secretWhitelist: []
+      scopes: []
+      sessionExpiry: ''
+      issuerAlias: ''
+      customGroupClaimName: ''
+      userInfoPath: ''
+      insecureSkipVerify: false
+      filterGroupsRegex: []
+    extraContainers: []
+    extraInitContainers: []
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    livenessProbe:
+      enabled: false
+      httpGet:
+        port: 2746
+        path: /
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+  extraObjects: []
+  useStaticCredentials: true
+  artifactRepository:
+    archiveLogs: false
+    s3: {}
+    gcs: {}
+    azure: {}
+  customArtifactRepository: {}
+  artifactRepositoryRef: {}
+  emissary:
+    images: []
+nemo-guardrails:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: nvcr.io/nvidia/nemo-microservices/guardrails
+    tag: ''
+    pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: nvcrimagepullsecret
+  nameOverride: ''
+  fullnameOverride: ''
+  guardrails:
+    nvcfAPIKeySecretName: ''
+  env:
+    NIM_ENDPOINT_URL: https://integrate.api.nvidia.com/v1
+    CONFIG_STORE_PATH: /app/services/guardrails/config-store
+    DEFAULT_CONFIG_ID: default
+    DEFAULT_LLM_PROVIDER: nim
+    NEMO_GUARDRAILS_SERVER_ENABLE_CORS: 'False'
+    NEMO_GUARDRAILS_SERVER_ALLOWED_ORIGINS: '*'
+    GUARDRAILS_HOST: 0.0.0.0
+    GUARDRAILS_PORT: '7331'
+    DEMO: 'False'
+  service:
+    type: ClusterIP
+    port: 7331
+  configStore:
+    nfs:
+      enabled: false
+      path: /path/to/nfs/share
+      server: nfs-server.example.com
+      mountPath: /config-store
+      storageClass: standard
+  readinessProbe:
+    httpGet:
+      path: /v1/health
+      port: 7331
+    initialDelaySeconds: 5
+    timeoutSeconds: 30
+  livenessProbe:
+    httpGet:
+      path: /v1/health
+      port: 7331
+    initialDelaySeconds: 5
+    timeoutSeconds: 30
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ''
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  runAsGroup: ''
+  fsGroup: ''
+  securityContext: {}
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts: {}
+    tls: []
+  resources: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
