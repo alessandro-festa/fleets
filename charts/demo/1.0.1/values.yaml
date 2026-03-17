@@ -1,7 +1,0 @@
-global:
-  imagePullSecrets:
-    - application-collection
-    - name: ngc-registry-secret
-  namespace: ''
-argo-workflows:
-  enabled: true
