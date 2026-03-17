@@ -1,0 +1,7 @@
+defaultNamespace: nvidia-blueprint-rag
+helm:
+  releaseName: nvidia-blueprint-rag
+  chart: fleet
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
