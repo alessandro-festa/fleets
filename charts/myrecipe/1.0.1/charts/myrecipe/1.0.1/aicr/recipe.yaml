@@ -1,0 +1,33 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+    version: 1.0.1
+criteria:
+    service: self-managed
+    accelerator: h100
+    intent: inference
+    os: rhel
+    platform: dynamo
+componentRefs:
+    - name: argo-workflows
+      namespace: myrecipe
+      chart: argo-workflows
+      type: Helm
+      source: oci://dp.apps.rancher.io/charts/argo-workflows
+      version: '*'
+    - name: nemo-guardrails
+      namespace: myrecipe
+      chart: nemo-guardrails
+      type: Helm
+      source: https://helm.ngc.nvidia.com/nvidia/nemo-microservices/charts/nemo-guardrails-25.6.0.tgz
+      version: 25.6.0
+    - name: vllm
+      namespace: myrecipe
+      chart: vllm
+      type: Helm
+      source: oci://dp.apps.rancher.io/charts/vllm
+      version: '*'
+deploymentOrder:
+    - argo-workflows
+    - nemo-guardrails
+    - vllm
