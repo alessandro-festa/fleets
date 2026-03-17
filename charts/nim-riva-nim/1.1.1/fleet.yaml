@@ -1,0 +1,7 @@
+defaultNamespace: nim-riva-nim
+helm:
+  releaseName: nim-riva-nim
+  chart: fleet
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
