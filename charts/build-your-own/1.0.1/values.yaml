@@ -1,0 +1,9 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+argo-workflows:
+  enabled: true
+nemo-guardrails:
+  enabled: true
