@@ -1,0 +1,454 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+argo-workflows:
+  enabled: true
+  apiVersionOverrides:
+    autoscaling: ''
+    cloudgoogle: ''
+    monitoring: ''
+  artifactRepository:
+    archiveLogs: false
+    azure: {}
+    gcs: {}
+    s3: {}
+  artifactRepositoryRef: {}
+  commonLabels: {}
+  controller:
+    affinity: {}
+    clusterWorkflowTemplates:
+      enabled: true
+      serviceAccounts: []
+    columns: []
+    configMap:
+      annotations: {}
+      create: true
+      name: ''
+    cronWorkflowWorkers: null
+    deploymentAnnotations: {}
+    extraArgs: []
+    extraContainers: []
+    extraEnv: []
+    extraInitContainers: []
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/workflow-controller
+      tag: 4.0.2-3.4
+    initialDelay: null
+    instanceID:
+      enabled: false
+      explicitID: ''
+      useReleaseName: false
+    kubeConfig: {}
+    links: []
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /healthz
+        port: 6060
+      initialDelaySeconds: 90
+      periodSeconds: 60
+      timeoutSeconds: 30
+    loadBalancerClass: ''
+    loadBalancerSourceRanges: []
+    logging:
+      format: text
+      globallevel: '0'
+      level: info
+    metricsConfig:
+      enabled: false
+      headlessService: false
+      honorLabels: false
+      ignoreErrors: false
+      interval: 30s
+      metricRelabelings: []
+      metricsTTL: ''
+      modifiers: {}
+      path: /metrics
+      port: 9090
+      portName: metrics
+      relabelings: []
+      scheme: http
+      secure: false
+      servicePort: 8080
+      servicePortName: metrics
+      targetLabels: []
+    name: workflow-controller
+    namespaceParallelism: null
+    navColor: ''
+    nodeEvents:
+      enabled: true
+    nodeSelector:
+      kubernetes.io/os: linux
+    parallelism: null
+    pdb:
+      enabled: false
+    persistence: {}
+    podAnnotations: {}
+    podCleanupWorkers: null
+    podGCDeleteDelayDuration: ''
+    podGCGracePeriodSeconds: null
+    podLabels: {}
+    podSecurityContext: {}
+    priorityClassName: ''
+    rbac:
+      accessAllSecrets: false
+      create: true
+      secretWhitelist: []
+      writeConfigMaps: false
+    replicas: 1
+    resourceRateLimit: {}
+    resources: {}
+    retentionPolicy: {}
+    revisionHistoryLimit: 10
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    serviceAccount:
+      annotations: {}
+      create: true
+      labels: {}
+      name: ''
+    serviceAnnotations: {}
+    serviceLabels: {}
+    serviceMonitor:
+      additionalLabels: {}
+      enabled: false
+      namespace: ''
+    serviceType: ClusterIP
+    synchronization: {}
+    telemetryConfig:
+      enabled: false
+      ignoreErrors: false
+      interval: 30s
+      metricsTTL: ''
+      path: /telemetry
+      port: 8081
+      scheme: http
+      secure: false
+      servicePort: 8081
+      servicePortName: telemetry
+    tolerations: []
+    topologySpreadConstraints: []
+    volumeMounts: []
+    volumes: []
+    workflowDefaults: {}
+    workflowEvents:
+      enabled: true
+    workflowNamespaces:
+      - default
+    workflowRestrictions: {}
+    workflowTTLWorkers: null
+    workflowWorkers: null
+  crds:
+    annotations: {}
+    full: true
+    install: true
+    keep: true
+    upgradeJob:
+      crdBaseURL: ''
+      hostPath: ''
+      image:
+        registry: dp.apps.rancher.io
+        repository: containers/kubectl
+        tag: 1.35.2-4.3
+      imagePullSecrets: []
+      nodeSelector: {}
+      resources: {}
+      tolerations: []
+  createAggregateRoles: true
+  customArtifactRepository: {}
+  emissary:
+    images: []
+  executor:
+    args: []
+    env: []
+    image:
+      pullPolicy: ''
+      registry: dp.apps.rancher.io
+      repository: containers/argoexec
+      tag: 4.0.2-3.4
+    resources: {}
+    securityContext: {}
+  extraObjects: []
+  fullnameOverride: null
+  global:
+    imagePullSecrets:
+      - name: application-collection
+      - name: ngc-registry-secret
+    imageRegistry: ''
+  images:
+    pullPolicy: Always
+    pullSecrets: []
+    tag: ''
+  kubeVersionOverride: ''
+  mainContainer:
+    env: []
+    envFrom: []
+    imagePullPolicy: ''
+    resources: {}
+    securityContext: {}
+  nameOverride: null
+  namespaceOverride: ''
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  server:
+    GKEbackendConfig:
+      enabled: false
+      spec: {}
+    GKEfrontendConfig:
+      enabled: false
+      spec: {}
+    GKEmanagedCertificate:
+      domains:
+        - argoworkflows.example.com
+      enabled: false
+    affinity: {}
+    authMode: ''
+    authModes: []
+    autoscaling:
+      behavior: {}
+      enabled: false
+      maxReplicas: 5
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+    backendTLSPolicy:
+      annotations: {}
+      enabled: false
+      labels: {}
+      targetRefs: []
+      validation: {}
+    baseHref: /
+    clusterWorkflowTemplates:
+      enableEditing: true
+      enabled: true
+    deploymentAnnotations: {}
+    enabled: true
+    extraArgs: []
+    extraContainers: []
+    extraEnv: []
+    extraInitContainers: []
+    hostAliases: []
+    httproute:
+      annotations: {}
+      enabled: false
+      hostnames: []
+      labels: {}
+      parentRefs: []
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+    image:
+      registry: dp.apps.rancher.io
+      repository: containers/argocli
+      tag: 4.0.2-3.4
+    ingress:
+      annotations: {}
+      enabled: false
+      extraPaths: []
+      hosts: []
+      ingressClassName: ''
+      labels: {}
+      pathType: Prefix
+      paths:
+        - /
+      tls: []
+    lifecycle: {}
+    livenessProbe:
+      enabled: false
+      failureThreshold: 3
+      httpGet:
+        path: /
+        port: 2746
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    loadBalancerClass: ''
+    loadBalancerIP: ''
+    loadBalancerSourceRanges: []
+    logging:
+      format: text
+      globallevel: '0'
+      level: info
+    name: server
+    nodeSelector:
+      kubernetes.io/os: linux
+    pdb:
+      enabled: false
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    priorityClassName: ''
+    rbac:
+      create: true
+    replicas: 1
+    resources: {}
+    revisionHistoryLimit: 10
+    secure: false
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+    serviceAccount:
+      annotations: {}
+      create: true
+      labels: {}
+      name: ''
+    serviceAnnotations: {}
+    serviceLabels: {}
+    serviceNodePort: null
+    servicePort: 2746
+    servicePortName: ''
+    serviceTargetPort: 2746
+    serviceType: ClusterIP
+    sso:
+      clientId:
+        key: client-id
+        name: argo-server-sso
+      clientSecret:
+        key: client-secret
+        name: argo-server-sso
+      customGroupClaimName: ''
+      enabled: false
+      filterGroupsRegex: []
+      insecureSkipVerify: false
+      issuer: https://accounts.google.com
+      issuerAlias: ''
+      rbac:
+        enabled: true
+        secretWhitelist: []
+      redirectUrl: ''
+      scopes: []
+      sessionExpiry: ''
+      userInfoPath: ''
+    terminationGracePeriodSeconds: 30
+    tmpVolume:
+      emptyDir: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    volumeMounts: []
+    volumes: []
+  singleNamespace: false
+  useStaticCredentials: true
+  workflow:
+    namespace: null
+    rbac:
+      agentPermissions: false
+      artifactGC: false
+      create: true
+      rules: []
+      serviceAccounts: []
+    serviceAccount:
+      annotations: {}
+      create: false
+      labels: {}
+      name: argo-workflow
+      pullSecrets: []
+vllm:
+  enabled: true
+  global:
+    imagePullSecrets:
+      - name: application-collection
+      - name: ngc-registry-secret
+    imageRegistry: ''
+  loraController:
+    enableLoraController: false
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  routerSpec:
+    containerPort: 8000
+    enableRouter: true
+    engineScrapeInterval: 15
+    extraArgs: []
+    imagePullPolicy: Always
+    ingress:
+      annotations: {}
+      className: ''
+      enabled: false
+      hosts:
+        - host: vllm-router.local
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+    labels:
+      environment: router
+      release: router
+    nodeSelectorTerms: []
+    registry: dp.apps.rancher.io
+    replicaCount: 1
+    repository: containers/lmcache-lmstack-router
+    requestStatsWindow: 60
+    resources:
+      limits:
+        cpu: '8'
+        memory: 32G
+      requests:
+        cpu: '4'
+        memory: 16G
+    routingLogic: roundrobin
+    serviceAnnotations: {}
+    serviceDiscovery: k8s
+    servicePort: 80
+    serviceType: ClusterIP
+    sessionKey: ''
+    staticBackends: ''
+    staticModels: ''
+    strategy: {}
+    tag: 0.1.6-3.20
+  servingEngineSpec:
+    configs: {}
+    containerPort: 8000
+    containerSecurityContext:
+      runAsNonRoot: false
+    enableEngine: true
+    labels:
+      environment: test
+      release: test
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    maxUnavailablePodDisruptionBudget: ''
+    modelSpec: []
+    runtimeClassName: nvidia
+    schedulerName: ''
+    securityContext: {}
+    servicePort: 80
+    startupProbe:
+      failureThreshold: 60
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    strategy: {}
+    tolerations: []
+nemo-guardrails:
+  enabled: true

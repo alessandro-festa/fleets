@@ -1,0 +1,7 @@
+defaultNamespace: myrecipe
+helm:
+  releaseName: myrecipe
+  chart: fleet
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
