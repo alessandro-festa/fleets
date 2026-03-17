@@ -1,0 +1,27 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: demo
+  version: 1.0.1
+criteria:
+  service: self-managed
+  accelerator: h100
+  intent: inference
+  os: rhel
+  platform: dynamo
+componentRefs:
+  - name: apache-airflow
+    namespace: demo
+    chart: apache-airflow
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/apache-airflow
+    version: '*'
+  - name: nvidia-blueprint-rag
+    namespace: demo
+    chart: nvidia-blueprint-rag
+    type: Helm
+    source: git+https://github.com/NVIDIA-AI-Blueprints/rag//deploy/helm/nvidia-blueprint-rag
+    version: v2.4.0
+deploymentOrder:
+  - apache-airflow
+  - nvidia-blueprint-rag
