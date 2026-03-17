@@ -1,7 +1,0 @@
-defaultNamespace: nim-nvidia-llama-3-2-nemoretriever-1b-vlm-embed-v1
-helm:
-  releaseName: nim-nvidia-llama-3-2-nemoretriever-1b-vlm-embed-v1
-  chart: .
-  takeOwnership: true
-  atomic: true
-  waitForJobs: true
