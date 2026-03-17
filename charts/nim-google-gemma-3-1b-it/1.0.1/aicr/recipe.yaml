@@ -1,0 +1,20 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: nim-google-gemma-3-1b-it
+  version: 1.0.1
+criteria:
+  service: self-managed
+  accelerator: h100
+  intent: inference
+  os: rhel
+  platform: dynamo
+componentRefs:
+  - name: gemma-3-1b-it
+    namespace: nim-google-gemma-3-1b-it
+    chart: gemma-3-1b-it
+    type: Helm
+    source: https://helm.ngc.nvidia.com/nim/charts/nim-llm-1.15.5.tgz
+    version: '*'
+deploymentOrder:
+  - gemma-3-1b-it

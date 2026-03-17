@@ -1,0 +1,7 @@
+defaultNamespace: nim-google-gemma-3-1b-it
+helm:
+  releaseName: nim-google-gemma-3-1b-it
+  chart: fleet
+  takeOwnership: true
+  atomic: true
+  waitForJobs: true
