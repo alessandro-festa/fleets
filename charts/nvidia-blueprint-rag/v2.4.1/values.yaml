@@ -1,0 +1,19 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+main:
+  enabled: true
+  opentelemetry-collector:
+    enabled: false
+nv-ingest:
+  enabled: true
+eck-elasticsearch:
+  enabled: true
+zipkin:
+  enabled: true
+opentelemetry-collector:
+  enabled: true
+kube-prometheus-stack:
+  enabled: true
