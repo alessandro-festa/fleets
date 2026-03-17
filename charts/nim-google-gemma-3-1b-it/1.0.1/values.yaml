@@ -1,0 +1,141 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+gemma-3-1b-it:
+  enabled: true
+  affinity: {}
+  containerSecurityContext: {}
+  customCommand: []
+  customArgs: []
+  env: []
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  image:
+    repository: nvcr.io/nim/google/gemma-3-1b-it
+    pullPolicy: IfNotPresent
+    tag: latest
+  imagePullSecrets:
+    - name: ngc-secret
+  initContainers:
+    extraInit: []
+  nodeSelector: {}
+  podAnnotations: {}
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  proxyCA:
+    enabled: false
+    secretName: ''
+    keyName: ''
+  replicaCount: 1
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ''
+  statefulSet:
+    enabled: true
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    metrics: []
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            serviceType: openai
+    tls: []
+  livenessProbe:
+    enabled: true
+    method: http
+    command:
+      - myscript.sh
+    path: /v1/health/live
+    initialDelaySeconds: 15
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    path: /v1/health/ready
+    initialDelaySeconds: 15
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  startupProbe:
+    enabled: true
+    path: /v1/health/ready
+    initialDelaySeconds: 40
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 180
+  metrics:
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+  model:
+    nimCache: /model-store
+    name: meta/llama3-8b-instruct
+    ngcAPISecret: ngc-api
+    ngcAPIKey: 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
+    hfTokenSecret: ''
+    openaiPort: 8000
+    labels: {}
+    jsonLogging: true
+    logLevel: INFO
+  persistence:
+    enabled: false
+    existingClaim: ''
+    storageClass: ''
+    accessMode: ReadWriteOnce
+    stsPersistentVolumeClaimRetentionPolicy:
+      whenDeleted: Retain
+      whenScaled: Retain
+    size: 50Gi
+    annotations: {}
+  hostPath:
+    enabled: false
+    path: /model-store
+  nfs:
+    enabled: false
+    server: nfs-server.example.com
+    path: /exports
+    readOnly: false
+  service:
+    type: ClusterIP
+    openaiPort: 8000
+    annotations: {}
+    labels: {}
+    name: ''
+  multiNode:
+    clusterStartTimeout: 300
+    enabled: false
+    workers: 1
+    workerCustomCommand: []
+    leaderWorkerSet:
+      enabled: true
+    existingSSHSecret: ''
+    mpiJob:
+      workerAnnotations: {}
+      launcherResources: {}
+    gpusPerNode: 1
+    optimized:
+      enabled: true
