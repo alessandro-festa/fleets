@@ -1,0 +1,55 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: nvidia-blueprint-rag
+  version: v2.5.1
+criteria:
+  service: kubernetes
+  accelerator: any
+  intent: mixed
+  os: any
+  platform: any
+componentRefs:
+  - name: main
+    namespace: nvidia-blueprint-rag
+    chart: main
+    type: Helm
+    source: https://github.com/NVIDIA-AI-Blueprints/rag
+    version: v2.5.0
+  - name: nv-ingest
+    namespace: nvidia-blueprint-rag
+    chart: nv-ingest
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/nv-ingest
+    version: '*'
+  - name: eck-elasticsearch
+    namespace: nvidia-blueprint-rag
+    chart: eck-elasticsearch
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/eck-elasticsearch
+    version: '*'
+  - name: zipkin
+    namespace: nvidia-blueprint-rag
+    chart: zipkin
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/zipkin
+    version: '*'
+  - name: opentelemetry-collector
+    namespace: nvidia-blueprint-rag
+    chart: opentelemetry-collector
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/opentelemetry-collector
+    version: '*'
+  - name: kube-prometheus-stack
+    namespace: nvidia-blueprint-rag
+    chart: kube-prometheus-stack
+    type: Helm
+    source: oci://dp.apps.rancher.io/charts/kube-prometheus-stack
+    version: '*'
+deploymentOrder:
+  - main
+  - nv-ingest
+  - eck-elasticsearch
+  - zipkin
+  - opentelemetry-collector
+  - kube-prometheus-stack
