@@ -12,6 +12,6 @@ eck-elasticsearch:
 zipkin:
   enabled: true
 opentelemetry-collector:
-  enabled: false
+  enabled: true
 kube-prometheus-stack:
   enabled: true
