@@ -1,0 +1,20 @@
+kind: RecipeResult
+apiVersion: aicr.nvidia.com/v1alpha1
+metadata:
+  name: nvidia-blueprint-rag
+  version: v2.5.2
+criteria:
+  service: kubernetes
+  accelerator: any
+  intent: mixed
+  os: any
+  platform: any
+componentRefs:
+  - name: nvidia-blueprint-rag
+    namespace: nvidia-blueprint-rag
+    chart: nvidia-blueprint-rag
+    type: Helm
+    source: git+https://github.com/NVIDIA-AI-Blueprints/rag//deploy/helm/nvidia-blueprint-rag
+    version: v2.5.0
+deploymentOrder:
+  - nvidia-blueprint-rag

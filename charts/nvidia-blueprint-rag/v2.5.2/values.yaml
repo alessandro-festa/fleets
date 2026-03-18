@@ -1,0 +1,7 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - ngc-registry-secret
+  namespace: ''
+nvidia-blueprint-rag:
+  enabled: true
