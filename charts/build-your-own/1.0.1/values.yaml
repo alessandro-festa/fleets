@@ -1,0 +1,153 @@
+global:
+  imagePullSecrets:
+    - application-collection
+    - name: ngc-registry-secret
+  namespace: ''
+ollama:
+  enabled: true
+  global:
+    imageRegistry: ''
+    imagePullSecrets: []
+  replicaCount: 1
+  knative:
+    enabled: false
+    containerConcurrency: 0
+    timeoutSeconds: 300
+    responseStartTimeoutSeconds: 300
+    idleTimeoutSeconds: 300
+    annotations: {}
+  image:
+    repository: containers/ollama
+    pullPolicy: IfNotPresent
+    tag: 0.14.2-11.17
+    registry: dp.apps.rancher.io
+  imagePullSecrets: []
+  nameOverride: ''
+  fullnameOverride: ''
+  namespaceOverride: ''
+  ollama:
+    port: 11434
+    gpu:
+      enabled: false
+      draEnabled: false
+      draDriverClass: gpu.nvidia.com
+      draExistingClaimTemplate: ''
+      type: nvidia
+      number: 1
+      nvidiaResource: nvidia.com/gpu
+      mig:
+        enabled: false
+        devices: {}
+    models:
+      pull: []
+      run: []
+      create: []
+      clean: false
+    insecure: false
+    mountPath: ''
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ''
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  priorityClassName: ''
+  securityContext: {}
+  runtimeClassName: ''
+  service:
+    type: LoadBalancer
+    port: 11434
+    nodePort: 31434
+    loadBalancerIP: null
+    annotations: {}
+    labels: {}
+    ipFamilies: []
+    ipFamilyPolicy: ''
+  deployment:
+    labels: {}
+  ingress:
+    enabled: false
+    className: ''
+    annotations: {}
+    hosts:
+      - host: ollama.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  resources:
+    requests: {}
+    limits: {}
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 6
+    successThreshold: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  volumes: []
+  volumeMounts: []
+  extraArgs: []
+  extraEnv: []
+  extraEnvFrom: []
+  persistentVolume:
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    annotations: {}
+    existingClaim: ''
+    size: 30Gi
+    storageClass: ''
+    volumeMode: ''
+    subPath: ''
+    volumeName: ''
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  lifecycle: {}
+  updateStrategy:
+    type: Recreate
+  topologySpreadConstraints: {}
+  terminationGracePeriodSeconds: 120
+  initContainers: []
+  hostIPC: false
+  hostPID: false
+  hostNetwork: false
+  extraObjects: []
+  tests:
+    enabled: true
+    labels: {}
+    annotations: {}
+custom-1773856840512:
+  enabled: true
+  image:
+    repository: ghcr.io/nvidia-ai-iot/live-vlm-webui
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 8090
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  env: []
