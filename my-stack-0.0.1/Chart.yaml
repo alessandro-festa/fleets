@@ -6,3 +6,7 @@ type: application
 maintainers:
   - name: alex
 dependencies:
+  - name: apache-airflow
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/apache-airflow
+    condition: apache-airflow.enabled
