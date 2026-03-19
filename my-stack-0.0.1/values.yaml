@@ -1,0 +1,7 @@
+# Author: alessandro.festa1@suse.com
+# Date: 2026-03-19T14:29:15Z
+# Version: 0.0.1
+# Stack Name: my-stack-0.0.1
+
+global:
+  namespace: ai-factory
