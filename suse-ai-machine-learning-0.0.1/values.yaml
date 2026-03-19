@@ -1,0 +1,7 @@
+# Author: alessandro.festa1@suse.com
+# Date: 2026-03-19T15:53:41Z
+# Version: 0.0.1
+# Stack Name: suse-ai-machine-learning-0.0.1
+
+global:
+  namespace: ai-factory
