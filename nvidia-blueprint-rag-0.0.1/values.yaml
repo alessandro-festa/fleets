@@ -1,7 +1,0 @@
-# Author: alessandro.festa1@suse.com
-# Date: 2026-03-19T15:54:44Z
-# Version: 0.0.1
-# Stack Name: nvidia-blueprint-rag-0.0.1
-
-global:
-  namespace: ai-factory
