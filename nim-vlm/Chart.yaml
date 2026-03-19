@@ -1,0 +1,20 @@
+apiVersion: v2
+name: nim-vlm
+version: 1.7.0
+description: A Helm chart for NVIDIA NIM for VLMs
+type: application
+maintainers:
+  - name: alex
+dependencies:
+  - name: nim-vlm
+    version: 1.7.0
+    repository: https://helm.ngc.nvidia.com/nim/charts/nim-vlm-1.7.0.tgz
+    condition: nim-vlm.enabled
+  - name: milvus
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/milvus
+    condition: milvus.enabled
+  - name: open-webui
+    version: latest
+    repository: oci://dp.apps.rancher.io/charts/open-webui
+    condition: open-webui.enabled
