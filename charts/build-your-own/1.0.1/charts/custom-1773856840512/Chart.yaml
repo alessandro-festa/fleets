@@ -1,6 +1,0 @@
-apiVersion: v2
-name: live-vlm-webui
-description: Generic container chart for SUSE AI Factory
-type: application
-version: 0.1.0
-appVersion: "1.0"
