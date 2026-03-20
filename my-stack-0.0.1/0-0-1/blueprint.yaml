@@ -1,0 +1,41 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: my-stack-0.0.1
+  labels:
+    catalog.suse.ai/support: Open Source
+    catalog.suse.ai/tier: certified
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: new
+  mantainer: @alessandro-festa
+  source: https://github.com/alessandro-festa/fleets
+spec:
+  displayName: my-stack-0.0.1
+  description: This is a simple demonstration stack
+  category: Inference
+  source:
+    git:
+      url: https://github.com/alessandro-festa/fleets
+      ref: main
+      path: my-stack-0.0.1/0-0-1
+  modules:
+    - moduleRef: apache-airflow
+      displayName: Apache Airflow
+      description: Apache Airflow is an open-source platform for programmatically authoring, scheduling, and monitoring complex workflows, primarily used for data pipelines, but also for other automated tasks like infrastructure management.
+      category: dataIngestion
+      support: SUSE
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts/apache-airflow
+          ref: latest
+      targetNamespace: ai-factory
+    - moduleRef: opentelemetry-collector
+      displayName: OpenTelemetry Collector
+      description: The OpenTelemetry Collector offers a vendor-agnostic implementation on how to receive, process and export telemetry data. In addition, it removes the need to run, operate and maintain multiple agents/collectors in order to support open-source telemetry data formats (e.g. Jaeger, Prometheus, etc.) to multiple open-source or commercial back-ends.
+      category: applicationUI
+      support: SUSE
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts/opentelemetry-collector
+          ref: latest
+      targetNamespace: ai-factory
