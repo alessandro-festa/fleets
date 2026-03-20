@@ -1,0 +1,82 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: suse-ai-genai
+  labels:
+    catalog.suse.ai/support: opensource
+    catalog.suse.ai/tier: certified
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: new
+  mantainer: alessandro.festa1@suse.com
+  source: https://github.com/alessandro-festa/fleets
+  icon: ../icon.png
+spec:
+  displayName: suse-ai-genai
+  description: A Meta Helm chart for deploying SUSE AI components
+  category: Inference
+  source:
+    git:
+      url: https://github.com/alessandro-festa/fleets
+      ref: main
+      path: suse-ai-genai/0.0.1
+  modules:
+    - moduleRef: milvus
+      displayName: milvus
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 5.0.13
+      targetNamespace: suse-ai-genai
+    - moduleRef: ollama
+      displayName: ollama
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 1.33.2
+      targetNamespace: suse-ai-genai
+    - moduleRef: open-webui
+      displayName: open-webui
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 8.19.1
+      targetNamespace: suse-ai-genai
+    - moduleRef: pytorch
+      displayName: pytorch
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 0.3.2
+      targetNamespace: suse-ai-genai
+    - moduleRef: vllm
+      displayName: vllm
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 0.1.6
+      targetNamespace: suse-ai-genai
+    - moduleRef: open-webui-mcpo
+      displayName: open-webui-mcpo
+      description: Dependency
+      category: custom
+      support: Open Source
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts
+          ref: 1.0.2
+      targetNamespace: suse-ai-genai
