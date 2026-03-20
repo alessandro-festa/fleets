@@ -1,0 +1,21 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: nemo-guardrails
+  labels:
+    catalog.suse.ai/support: opensource
+    catalog.suse.ai/tier: certified
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: new
+  mantainer: a
+  source: https://github.com/alessandro-festa/fleets
+spec:
+  displayName: nemo-guardrails
+  description: NeMo Guardrails Microservice Helm Chart
+  category: Inference
+  source:
+    git:
+      url: https://github.com/alessandro-festa/fleets
+      ref: main
+      path: nemo-guardrails/25-6-0
+  modules:
