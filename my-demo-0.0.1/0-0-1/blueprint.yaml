@@ -1,0 +1,31 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: my-demo-0.0.1
+  labels:
+    catalog.suse.ai/support: opensource
+    catalog.suse.ai/tier: certified
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: new
+  mantainer: @alessandro-festa
+  source: https://github.com/alessandro-festa/fleets
+spec:
+  displayName: my-demo-0.0.1
+  description: 
+  category: Inference
+  source:
+    git:
+      url: https://github.com/alessandro-festa/fleets
+      ref: main
+      path: my-demo-0.0.1/0-0-1
+  modules:
+    - moduleRef: argo-workflows
+      displayName: Argo Workflows
+      description: Argo Workflows is an open source container-native workflow engine for orchestrating parallel jobs on Kubernetes. Argo Workflows is implemented as a Kubernetes CRD (Custom Resource Definition).
+      category: dataIngestion
+      support: SUSE
+      source:
+        helm:
+          url: oci://dp.apps.rancher.io/charts/argo-workflows
+          ref: latest
+      targetNamespace: ai-factory
