@@ -1,0 +1,11 @@
+apiVersion: v2
+name: "nim-llm"
+description: "A Helm chart for NVIDIA NIM for LLMs"
+version: "1.15.5"
+appVersion: "1.0"
+type: application
+annotations:
+  blueprint.suse.ai/name: "nim-llm"
+  blueprint.suse.ai/version: "1.15.5"
+  blueprint.suse.ai/last-edit: "2026-03-23T19:54:59Z"
+  blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
