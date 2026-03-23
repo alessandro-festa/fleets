@@ -1,0 +1,32 @@
+{{- range $key, $val := .Values }}
+{{- if and (kindIs "map" $val) $val.enabled $val.deployment }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "meta.fullname" $ }}-{{ $key }}
+  labels:
+    {{- include "meta.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $key }}
+spec:
+  replicas: {{ $val.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "meta.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $key }}
+  template:
+    metadata:
+      labels:
+        {{- include "meta.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $key }}
+    spec:
+      containers:
+        - name: {{ $key }}
+          image: "{{ $val.image.repository }}:{{ $val.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $val.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ $val.service.port | default 80 }}
+              protocol: TCP
+{{- end }}
+{{- end }}
