@@ -1,0 +1,38 @@
+apiVersion: v2
+name: "suse-ai-genai"
+description: "A Meta Helm chart for deploying SUSE AI components"
+version: "1.2.0"
+appVersion: "1.0"
+type: application
+annotations:
+  blueprint.suse.ai/name: "suse-ai-genai"
+  blueprint.suse.ai/version: "1.2.0"
+  blueprint.suse.ai/last-edit: "2026-03-23T18:29:34Z"
+  blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
+dependencies:
+  - name: "milvus"
+    version: ">0.0.0-0"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: milvus.enabled
+  - name: "ollama"
+    version: ">0.0.0-0"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: ollama.enabled
+  # ERROR: CONFLICT DETECTED FOR milvus. Manual intervention required.
+  # ERROR: CONFLICT DETECTED FOR ollama. Manual intervention required.
+  - name: "open-webui"
+    version: "8.19.1"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: open-webui.enabled
+  - name: "pytorch"
+    version: "0.3.2"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: pytorch.enabled
+  - name: "vllm"
+    version: "0.1.6"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: vllm.enabled
+  - name: "open-webui-mcpo"
+    version: "1.0.2"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: open-webui-mcpo.enabled
