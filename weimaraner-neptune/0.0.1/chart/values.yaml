@@ -1,0 +1,5 @@
+# Aggregated values.yaml
+argo-workflows:
+  enabled: true
+ollama:
+  enabled: true
