@@ -1,0 +1,16 @@
+apiVersion: v2
+name: "beagle-markab"
+description: ""
+version: "0.0.1"
+appVersion: "1.0"
+type: application
+annotations:
+  blueprint.suse.ai/name: "beagle-markab"
+  blueprint.suse.ai/version: "0.0.1"
+  blueprint.suse.ai/last-edit: "2026-03-23T20:40:24Z"
+  blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
+dependencies:
+  - name: "nim-llm"
+    version: "1.15.5"
+    repository: "https://helm.ngc.nvidia.com/nim"
+    condition: google-gemma-3-1b-it.enabled
