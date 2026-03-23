@@ -1,0 +1,19 @@
+# Aggregated values.yaml
+
+# Aggregated Stack Configuration
+
+
+# =============================================================================
+# --- nemo-guardrails ---
+# =============================================================================
+nemo-guardrails:
+  # Error fetching values for nim/nim-llm:
+  # {"message":"Failed to fetch helm values: Error: repo nim not found\n"}
+
+
+# =============================================================================
+# --- google-gemma-3-1b-it ---
+# =============================================================================
+google-gemma-3-1b-it:
+  # Error fetching values for nim/nim-llm:
+  # {"message":"Failed to fetch helm values: Error: repo nim not found\n"}
