@@ -1,0 +1,20 @@
+apiVersion: v2
+name: "pug-gliese"
+description: ""
+version: "0.0.2"
+appVersion: "1.0"
+type: application
+annotations:
+  blueprint.suse.ai/name: "pug-gliese"
+  blueprint.suse.ai/version: "0.0.2"
+  blueprint.suse.ai/last-edit: "2026-03-24T13:48:17Z"
+  blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
+dependencies:
+  - name: "argo-workflows"
+    version: ">0.0.0-0"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: argo-workflows.enabled
+  - name: "nim-llm"
+    version: "1.15.5"
+    repository: "https://helm.ngc.nvidia.com/nim"
+    condition: openai-gpt-oss-120b.enabled
