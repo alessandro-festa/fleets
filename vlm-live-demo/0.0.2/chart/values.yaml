@@ -57,10 +57,10 @@ ollama:
     port: 11434
     gpu:
       # -- Enable GPU integration
-      enabled: true
+      enabled: false
       # -- Enable DRA GPU integration
       # If enabled, it will use DRA instead of Device Driver Plugin and create a ResourceClaim and GpuClaimParameters
-      draEnabled: true
+      draEnabled: false
       # -- DRA GPU DriverClass
       draDriverClass: "gpu.nvidia.com"
       # -- Existing DRA GPU ResourceClaim Template
@@ -72,7 +72,7 @@ ollama:
       type: 'nvidia'
       # -- Specify the number of GPU
       # If you use MIG section below then this parameter is ignored
-      number: 4
+      number: 1
       # -- only for nvidia cards; change to (example) 'nvidia.com/mig-1g.10gb' to use MIG slice
       nvidiaResource: "nvidia.com/gpu"
       # nvidiaResource: "nvidia.com/mig-1g.10gb" # example
@@ -153,7 +153,7 @@ ollama:
   # Configure Service
   service:
     # -- Service type
-    type: ClusterIP
+    type: LoadBalancer
     # -- Service port
     port: 11434
     # -- Service node port when service type is 'NodePort'
@@ -401,6 +401,6 @@ vlm-live:
     tag: latest
     pullPolicy: IfNotPresent
   service:
-    type: ClusterIP
-    port: 80
-    targetPort: 80
+    type: LoadBalancer
+    port: 8090
+    targetPort: 8090
