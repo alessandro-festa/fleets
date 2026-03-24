@@ -1,0 +1,16 @@
+apiVersion: v2
+name: "live-vlm-webui"
+description: "A simple demo around vlm"
+version: "0.0.1"
+appVersion: "1.0"
+type: application
+annotations:
+  blueprint.suse.ai/name: "live-vlm-webui"
+  blueprint.suse.ai/version: "0.0.1"
+  blueprint.suse.ai/last-edit: "2026-03-24T14:20:42Z"
+  blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
+dependencies:
+  - name: "ollama"
+    version: ">0.0.0-0"
+    repository: "oci://dp.apps.rancher.io/charts"
+    condition: ollama.enabled
