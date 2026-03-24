@@ -1,0 +1,14 @@
+# Aggregated values.yaml
+
+# Aggregated Stack Configuration
+
+
+# =============================================================================
+# --- Custom Container: vlm-live ---
+# =============================================================================
+vlm-live:
+  image:
+    repository: ghcr.io/nvidia-ai-iot/live-vlm-webui
+    tag: latest
+  service:
+    port: 80
