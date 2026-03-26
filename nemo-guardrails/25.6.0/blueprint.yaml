@@ -19,9 +19,9 @@ spec:
       ref: "main"
       path: "nemo-guardrails/25.6.0/chart"
   modules:
-    - moduleRef: "google-gemma-3-4b-it"
+    - moduleRef: "google-gemma-3-1b-it"
       displayName: ""
-      description: "Inference model: google/gemma-3-4b-it"
+      description: "Inference model: google/gemma-3-1b-it"
       category: "inference"
       support: "NVIDIA"
       source:

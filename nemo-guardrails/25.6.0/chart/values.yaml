@@ -361,9 +361,9 @@ nemo-guardrails:
 
 
 # =============================================================================
-# --- google-gemma-3-4b-it ---
+# --- google-gemma-3-1b-it ---
 # =============================================================================
-google-gemma-3-4b-it:
+google-gemma-3-1b-it:
   ## @section Deployment parameters
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   ## @param affinity [object] [default: {}] Affinity settings for deployment.
@@ -415,7 +415,7 @@ google-gemma-3-4b-it:
   ## @param image.tag [string] Specifies the image tag or version.
   ## @param image.pullPolicy [string] Sets the image pull policy.
   image:
-    repository: nvcr.io/nvidia/google-gemma-3-4b-it
+    repository: nvcr.io/nvidia/google-gemma-3-1b-it
     pullPolicy: IfNotPresent
     # Tag overrides the image tag whose default is the chart appVersion.
     tag: ""
