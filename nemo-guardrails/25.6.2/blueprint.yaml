@@ -1,0 +1,54 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: "nemo-guardrails"
+  labels:
+    catalog.suse.ai/support: "opensource"
+    catalog.suse.ai/tier: "certified"
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: "new"
+  mantainer: "alessandro.festa1@suse.com"
+  source: "https://github.com/alessandro-festa/fleets"
+spec:
+  displayName: "nemo-guardrails"
+  description: "NeMo Guardrails Microservice Helm Chart"
+  category: "Inference"
+  source:
+    git:
+      url: "https://github.com/alessandro-festa/fleets"
+      ref: "main"
+      path: "nemo-guardrails/25.6.2/chart"
+  modules:
+    - moduleRef: "apache-kafka"
+      displayName: "Apache Kafka"
+      description: "Apache Kafka is an open-source distributed event streaming platform used for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications."
+      category: "dataIngestion"
+      support: "SUSE"
+      source:
+        helm:
+          url: "oci://dp.apps.rancher.io/charts/apache-kafka"
+          ref: ">0.0.0-0"
+          path: ""
+      targetNamespace: "nemo-guardrails"
+    - moduleRef: "google-gemma-3-4b-it"
+      displayName: ""
+      description: "Inference model: google/gemma-3-4b-it"
+      category: "inference"
+      support: "NVIDIA"
+      source:
+        helm:
+          url: "https://helm.ngc.nvidia.com/nim/charts/nim-llm-1.15.5.tgz"
+          ref: ">0.0.0-0"
+          path: ""
+      targetNamespace: "nemo-guardrails"
+    - moduleRef: "opentelemetry-collector"
+      displayName: "OpenTelemetry Collector"
+      description: "The OpenTelemetry Collector offers a vendor-agnostic implementation on how to receive, process and export telemetry data. In addition, it removes the need to run, operate and maintain multiple agents/collectors in order to support open-source telemetry data formats (e.g. Jaeger, Prometheus, etc.) to multiple open-source or commercial back-ends."
+      category: "applicationUI"
+      support: "SUSE"
+      source:
+        helm:
+          url: "oci://dp.apps.rancher.io/charts/opentelemetry-collector"
+          ref: ">0.0.0-0"
+          path: ""
+      targetNamespace: "nemo-guardrails"
