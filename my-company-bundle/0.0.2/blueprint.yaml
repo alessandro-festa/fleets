@@ -1,0 +1,43 @@
+apiVersion: suse.ai/v1alpha1
+kind: Blueprint
+metadata:
+  name: "my-company-bundle"
+  labels:
+    catalog.suse.ai/support: "opensource"
+    catalog.suse.ai/tier: "certified"
+    catalog.suse.ai/certified: "false"
+    catalog.suse.ai/status: "new"
+  mantainer: "alessandro.festa1@suse.com"
+  source: "https://github.com/alessandro-festa/fleets"
+spec:
+  displayName: "my-company-bundle"
+  description: "This is an intial bundle with NVIDIA and SUSE components"
+  category: "Inference"
+  source:
+    git:
+      url: "https://github.com/alessandro-festa/fleets"
+      ref: "main"
+      path: "my-company-bundle/0.0.2/chart"
+  modules:
+    - moduleRef: "opensearch"
+      displayName: "OpenSearch"
+      description: "OpenSearch is an open-source, enterprise-grade search and observability suite that brings order to unstructured data at scale."
+      category: "dataIngestion"
+      support: "SUSE"
+      source:
+        helm:
+          url: "oci://dp.apps.rancher.io/charts/opensearch"
+          ref: ">0.0.0-0"
+          path: ""
+      targetNamespace: "my-company-bundle"
+    - moduleRef: "google-gemma-3-1b-it"
+      displayName: ""
+      description: "Inference model: google/gemma-3-1b-it"
+      category: "inference"
+      support: "NVIDIA"
+      source:
+        helm:
+          url: "https://helm.ngc.nvidia.com/nim/charts/nim-llm-1.15.5.tgz"
+          ref: ">0.0.0-0"
+          path: ""
+      targetNamespace: "my-company-bundle"
