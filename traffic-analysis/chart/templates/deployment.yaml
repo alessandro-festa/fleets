@@ -25,14 +25,18 @@ spec:
         {{- include "meta.selectorLabels" $ | nindent 8 }}
         app.kubernetes.io/component: {{ $key }}
     spec:
-      {{- if or $.Values.global.imagePullSecrets $.Values.imagePullSecrets }}
+      {{- if not $val.skipImagePullSecrets }}
+      {{- if $.Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- range $.Values.global.imagePullSecrets }}
         - name: {{ .name | default . }}
         {{- end }}
+      {{- else if $.Values.imagePullSecrets }}
+      imagePullSecrets:
         {{- range $.Values.imagePullSecrets }}
         - name: {{ .name | default . }}
         {{- end }}
+      {{- end }}
       {{- end }}
       containers:
         - name: {{ $key }}

@@ -17,7 +17,7 @@ spec:
     git:
       url: "https://github.com/alessandro-festa/fleets"
       ref: "main"
-      path: "traffic-analysis/0.0.1/chart"
+      path: "traffic-analysis/0.0.2/chart"
   modules:
     - moduleRef: "ollama"
       displayName: "Ollama"
