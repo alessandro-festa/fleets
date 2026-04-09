@@ -11,13 +11,13 @@ metadata:
   source: "https://github.com/alessandro-festa/fleets"
 spec:
   displayName: "traffic-analysis"
-  description: "video summarization of traffic analysis"
+  description: "Video summarization for traffic analysis"
   category: "Inference"
   source:
     git:
       url: "https://github.com/alessandro-festa/fleets"
       ref: "main"
-      path: "traffic-analysis/0.0.2/chart"
+      path: "traffic-analysis/0.0.1/chart"
   modules:
     - moduleRef: "ollama"
       displayName: "Ollama"
