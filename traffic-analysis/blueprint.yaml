@@ -11,7 +11,7 @@ metadata:
   source: "https://github.com/alessandro-festa/fleets"
 spec:
   displayName: "traffic-analysis"
-  description: "Video summarization for traffic analysis"
+  description: "Use an LLM model to summarize traffic"
   category: "Inference"
   source:
     git:

@@ -1,13 +1,13 @@
 apiVersion: v2
 name: "traffic-analysis"
-description: "Video summarization for traffic analysis"
+description: "Use an LLM model to summarize traffic"
 version: "0.0.1"
 appVersion: "1.0"
 type: application
 annotations:
   blueprint.suse.ai/name: "traffic-analysis"
   blueprint.suse.ai/version: "0.0.1"
-  blueprint.suse.ai/last-edit: "2026-04-09T16:59:23Z"
+  blueprint.suse.ai/last-edit: "2026-04-09T17:07:28Z"
   blueprint.suse.ai/authors: "alessandro.festa1@suse.com"
 dependencies:
   - name: "ollama"
